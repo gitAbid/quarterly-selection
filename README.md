@@ -10,7 +10,7 @@ Requirements: **Node 22.12+, 24 or 26**, and npm. Nothing else; the database is 
 
 ```bash
 npm ci              # install (npm may warn about install scripts; this is harmless)
-npm test            # 130 tests, takes about 15 seconds
+npm test            # 131 tests, takes about 15 seconds
 npm run typecheck
 npm run demo        # draws 20 vehicles, restarts, retries, then verifies an audit export
 npm run benchmark   # times 20 and 200,000 vehicles
@@ -128,6 +128,29 @@ With *n* vehicles and *k* selected:
 - **Time: O(n log n)**, from one HMAC per vehicle followed by a sort. Retries and verification replay the draw, so they cost the same.
 - **Space: O(n)**, because the full list of eligible vehicles is stored with each draw so an auditor can replay it.
 
+Measured on an Apple M1 Pro, one run each (full logs in [evidence/VERIFICATION.md](evidence/VERIFICATION.md)):
+
+| Node | Vehicles | Create | Retry after restart | Verify audit | Peak memory |
+|---|---:|---:|---:|---:|---:|
+| 22 | 20 | 3 ms | 2 ms | 0.2 ms | 82 MiB |
+| 22 | 200,000 | 1.2 s | 0.6 s | 0.5 s | 369 MiB |
+| 24 | 20 | 3 ms | 1 ms | 0.2 ms | 82 MiB |
+| 24 | 200,000 | 4.2 s | 1.9 s | 2.0 s | 485 MiB |
+
+Peak memory is the whole Node process, including SQLite and the test data, not just the algorithm.
+
+## Exact replay encoding (for auditors)
+
+An auditor can recompute a draw in any language from the exported audit file:
+
+1. Sort `eligibleVehicleIds` by UTF-16 code units. This is JavaScript's default `<`; in other languages, compare UTF-16 code units, not code points.
+2. Decode `revealedSeed` from 64 hex characters into 32 bytes. That is the HMAC key.
+3. For each vehicle, compute `HMAC-SHA-256(key, utf8(JSON))` where the JSON is compact with no spaces: `["v2","<companyId>","<quarter>","<vehicleId>"]`. Write each score as lowercase hex.
+4. Sort by score, then by vehicle ID, and take the first `ceil(n × basisPoints / 10000)`, where basis points = percentage × 100.
+5. Check: `snapshotSha256` = SHA-256 of the compact JSON array of sorted IDs; `commitment` = SHA-256 of the 32 seed bytes.
+
+A worked fixture you can check against, calculated independently in Python: company `co-1`, quarter `2026-Q4`, 50% of `[veh-a, veh-b, veh-c, veh-d]` with seed `000102…1e1f` selects `veh-c` then `veh-b`. The full values are in `test/selection.test.ts` and [docs/PLAN.md](docs/PLAN.md#independent-fixture).
+
 ## Edge case the brief doesn't mention
 
 **The fleet changes between the first run and a retry.** For example, a vehicle is added after the draw. The service still returns the original draw and never redraws, but marks it `inputsMatch: false` so the caller can see the input differs. Listing the same IDs in a different order still gives `inputsMatch: true`.
@@ -155,6 +178,8 @@ src/
   audit.ts       audit bundle validation and verification
   cli.ts         command line wrapper
 test/            unit, concurrency, crash-recovery, CLI and scale tests
-scripts/         demo and benchmark
+scripts/         demo, benchmark and fairness check
+docs/PLAN.md     the plan this was built from, with a delivery cross-check
+docs/REQUIREMENTS.md  acceptance matrix written before implementation
 evidence/        recorded test, benchmark and clean-install logs (see VERIFICATION.md)
 ```

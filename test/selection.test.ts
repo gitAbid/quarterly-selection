@@ -5,6 +5,7 @@ import {
   SelectionInputError,
   type DrawInput,
 } from "../src/index";
+import { commitSeed } from "../src/selection";
 const seed = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 const fixture: DrawInput = {
   companyId: "co-1",
@@ -40,6 +41,11 @@ describe("selection and replay boundary", () => {
         },
       ],
     });
+  });
+  it("commits to the fixture seed with the independently calculated hash", () => {
+    expect(commitSeed(seed, "v2")).toBe(
+      "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+    );
   });
 });
 it("rejects zero percent rather than issuing an empty positive-policy draw", () => {
