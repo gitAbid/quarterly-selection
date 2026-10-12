@@ -1,35 +1,18 @@
 import { createHash, createHmac } from "node:crypto";
-import { algorithmFor, CURRENT_ALGORITHM, type ScoringAlgorithm } from "./algorithm";
+import { algorithmFor, CURRENT_ALGORITHM } from "./algorithms/registry";
+import type { ScoringAlgorithm } from "./algorithms/scoring-algorithm";
 import type {
   AlgorithmVersion,
   DrawInput,
   SelectedVehicle,
   SelectionResult,
   ValidatedDrawInput,
-} from "./types";
+} from "./model";
 import { compareCodeUnits, validateDrawInput } from "./validation";
 
+type ScoredVehicle = Omit<SelectedVehicle, "rank">;
+
 const BASIS_POINTS_PER_WHOLE = 10_000;
-
-/** ceil(eligible × basisPoints / 10,000), in exact integer arithmetic. */
-export function selectedCountFor(eligible: number, basisPoints: number): number {
-  return Math.floor(
-    (eligible * basisPoints + BASIS_POINTS_PER_WHOLE - 1) /
-      BASIS_POINTS_PER_WHOLE,
-  );
-}
-
-export function snapshotHash(canonicalIds: readonly string[]): string {
-  return createHash("sha256")
-    .update(JSON.stringify(canonicalIds), "utf8")
-    .digest("hex");
-}
-
-export function commitSeed(seed: string, version: AlgorithmVersion): string {
-  return createHash("sha256")
-    .update(algorithmFor(version).hmacKey(seed))
-    .digest("hex");
-}
 
 /**
  * Pure and deterministic: the same input, seed and version always give the
@@ -62,7 +45,25 @@ export function replaySelection(
   };
 }
 
-type ScoredVehicle = Omit<SelectedVehicle, "rank">;
+/** ceil(eligible × basisPoints / 10,000), in exact integer arithmetic. */
+export function selectedCountFor(eligible: number, basisPoints: number): number {
+  return Math.floor(
+    (eligible * basisPoints + BASIS_POINTS_PER_WHOLE - 1) /
+      BASIS_POINTS_PER_WHOLE,
+  );
+}
+
+export function snapshotHash(canonicalIds: readonly string[]): string {
+  return createHash("sha256")
+    .update(JSON.stringify(canonicalIds), "utf8")
+    .digest("hex");
+}
+
+export function commitSeed(seed: string, version: AlgorithmVersion): string {
+  return createHash("sha256")
+    .update(algorithmFor(version).hmacKey(seed))
+    .digest("hex");
+}
 
 function rankVehicles(
   algorithm: ScoringAlgorithm,

@@ -1,19 +1,11 @@
-import { algorithmFor } from "./algorithm";
-import type { SeedCipher } from "./crypto";
-import {
-  SelectionError,
-  SelectionInputError,
-  SelectionStorageError,
-} from "./errors";
-import { parseRunRecord } from "./record";
-import { commitSeed, replaySelection, snapshotHash } from "./selection";
-import type { StoredRun } from "./store";
+import { SelectionError, SelectionInputError } from "./errors";
 import type {
-  AuditBundle,
   SelectionResult,
   SelectionRunRecord,
   VerificationReport,
-} from "./types";
+} from "./model";
+import { parseRunRecord } from "./run-record-parser";
+import { commitSeed, replaySelection, snapshotHash } from "./selection";
 import { isRecord } from "./validation";
 
 /** Every check must be present and pass for a bundle to verify. */
@@ -24,6 +16,13 @@ type CheckName =
   | "eligibleCountMatches"
   | "selectedCountFollowsRule"
   | "selectionReproduced";
+
+interface ParsedBundle {
+  readonly record: SelectionRunRecord;
+  readonly revealedSeed: string;
+}
+
+const UNEXPECTED_FAILURE = "audit bundle could not be validated";
 
 /**
  * Recomputes a draw from an exported audit file and compares it with what was
@@ -61,43 +60,13 @@ export function verifyAuditBundle(bundle: unknown): VerificationReport {
       .map(([name]) => `check failed: ${name}`);
     return { ok: errors.length === 0, checks, errors };
   } catch (error) {
-    return {
-      ok: false,
-      checks: {},
-      errors: [
-        error instanceof SelectionError
-          ? error.message
-          : "audit bundle could not be validated",
-      ],
-    };
+    const message =
+      error instanceof SelectionError ? error.message : UNEXPECTED_FAILURE;
+    return { ok: false, checks: {}, errors: [message] };
   }
 }
 
-/**
- * Decrypts a stored run's seed and checks the run replays exactly before
- * anything is returned. Used on every read, so corrupt or tampered storage
- * fails loudly instead of being served.
- */
-export function openAuditBundle(
-  stored: StoredRun,
-  cipher: SeedCipher,
-): AuditBundle {
-  const bundle: AuditBundle = {
-    record: stored.record,
-    revealedSeed: cipher.decrypt(stored.encrypted, stored.record),
-    algorithm: algorithmFor(stored.record.algorithmVersion).description,
-  };
-  if (!verifyAuditBundle(bundle).ok)
-    throw new SelectionStorageError(
-      "persisted selection evidence is inconsistent",
-    );
-  return bundle;
-}
-
-function parseBundle(bundle: unknown): {
-  record: SelectionRunRecord;
-  revealedSeed: string;
-} {
+function parseBundle(bundle: unknown): ParsedBundle {
   if (
     !isRecord(bundle) ||
     typeof bundle.revealedSeed !== "string" ||

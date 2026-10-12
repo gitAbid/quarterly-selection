@@ -285,13 +285,13 @@ This section was added after the build, checking each part of the plan above aga
 
 | Plan item | Status | Where |
 |---|---|---|
-| Accept company, active IDs, percentage, quarter; no caller seed | ✅ Done | `src/validation.ts` |
-| HMAC ranking, v2 encoding, code-unit ordering, score-then-ID ranking | ✅ Done | `src/selection.ts` |
-| Ceiling count; 0.01–100%, two decimals; zero rejected | ✅ Done | `src/validation.ts`, `test/selection.test.ts` |
-| SQLite: composite key, WAL, full sync, 5 s busy timeout, atomic insert | ✅ Done | `src/store.ts` |
-| AES-256-GCM seed, fresh 12-byte nonce, version/company/quarter bound as AAD | ✅ Done | `src/crypto.ts` |
-| Changed valid request returns original with `inputsMatch: false` | ✅ Done | `src/service.ts`, `test/service.test.ts` |
-| v1 replay only; new draws v2; unknown versions rejected | ✅ Done | `src/selection.ts`, `src/audit.ts` |
+| Accept company, active IDs, percentage, quarter; no caller seed | ✅ Done | `src/domain/validation.ts` |
+| HMAC ranking, v2 encoding, code-unit ordering, score-then-ID ranking | ✅ Done | `src/domain/selection.ts` |
+| Ceiling count; 0.01–100%, two decimals; zero rejected | ✅ Done | `src/domain/validation.ts`, `test/selection.test.ts` |
+| SQLite: composite key, WAL, full sync, 5 s busy timeout, atomic insert | ✅ Done | `src/infrastructure/persistence/sqlite-selection-store.ts` |
+| AES-256-GCM seed, fresh 12-byte nonce, version/company/quarter bound as AAD | ✅ Done | `src/infrastructure/crypto/aes-gcm-seed-cipher.ts` |
+| Changed valid request returns original with `inputsMatch: false` | ✅ Done | `src/application/default-selection-service.ts`, `test/service.test.ts` |
+| v1 replay only; new draws v2; unknown versions rejected | ✅ Done | `src/domain/algorithms/` |
 | Independent fixture: ranks, scores, snapshot hash | ✅ Tested | `test/selection.test.ts` |
 | Independent fixture: commitment hash | ✅ Tested (assertion added during this cross-check) | `test/selection.test.ts` |
 | Distribution: 4,000 seeds from `distribution:<trial>`, within 5 standard deviations | ✅ Tested | `test/selection.test.ts` |

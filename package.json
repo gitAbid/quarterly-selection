@@ -10,12 +10,12 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "cli": "tsx src/cli.ts",
+    "cli": "tsx src/cli/main.ts",
     "demo": "tsx scripts/demo.ts",
     "benchmark": "tsx scripts/benchmark.ts",
     "fairness": "tsx scripts/fairness.ts",
     "tdd": "node scripts/tdd-check.mjs",
-    "verify": "tsx src/cli.ts verify"
+    "verify": "tsx src/cli/main.ts verify"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3"

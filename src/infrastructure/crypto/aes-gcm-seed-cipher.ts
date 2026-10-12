@@ -1,33 +1,19 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import { SelectionKeyError } from "./errors";
-import type { AlgorithmVersion } from "./types";
+import type {
+  EncryptedSeed,
+  SeedBinding,
+  SeedCipher,
+} from "../../application/ports";
+import { SelectionKeyError } from "../../domain/errors";
 
-export interface EncryptedSeed {
-  readonly ciphertext: Buffer;
-  readonly nonce: Buffer;
-  readonly tag: Buffer;
-}
-
-/** The draw a seed belongs to. It is authenticated, so a seed can't be moved to another draw. */
-export interface SeedBinding {
-  readonly algorithmVersion: AlgorithmVersion;
-  readonly companyId: string;
-  readonly quarter: string;
-}
-
-/** Encrypts the retained seed at rest. The service depends on this, not on AES directly. */
-export interface SeedCipher {
-  encrypt(seedHex: string, binding: SeedBinding): EncryptedSeed;
-  decrypt(encrypted: EncryptedSeed, binding: SeedBinding): string;
-  /** Zeroes the key. The cipher can't be used afterwards. */
-  dispose(): void;
-}
-
+const ALGORITHM = "aes-256-gcm";
 const KEY_BYTES = 32;
 const NONCE_BYTES = 12;
 const SEED_BYTES = 32;
-const ALGORITHM = "aes-256-gcm";
+const AUTHENTICATION_FAILED =
+  "retained seed could not be authenticated; check key and stored evidence";
 
+/** AES-256-GCM with a fresh nonce per seed and the draw identity as associated data. */
 export class AesGcmSeedCipher implements SeedCipher {
   private readonly key: Buffer;
 
@@ -60,15 +46,10 @@ export class AesGcmSeedCipher implements SeedCipher {
         decipher.final(),
       ]);
     } catch (cause) {
-      throw new SelectionKeyError(
-        "retained seed could not be authenticated; check key and stored evidence",
-        { cause },
-      );
+      throw new SelectionKeyError(AUTHENTICATION_FAILED, { cause });
     }
     if (seed.length !== SEED_BYTES)
-      throw new SelectionKeyError(
-        "retained seed could not be authenticated; check key and stored evidence",
-      );
+      throw new SelectionKeyError(AUTHENTICATION_FAILED);
     return seed.toString("hex");
   }
 

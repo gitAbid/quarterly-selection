@@ -1,5 +1,5 @@
 import { SelectionInputError } from "./errors";
-import type { SelectionIdentity, ValidatedDrawInput } from "./types";
+import type { SelectionIdentity, ValidatedDrawInput } from "./model";
 
 const QUARTER = /^\d{4}-Q[1-4]$/;
 const MIN_PERCENTAGE = 0.01;
@@ -28,8 +28,9 @@ export function isWellFormedTextArray(value: unknown): value is string[] {
 }
 
 /** Locale-independent ordering by UTF-16 code units. */
-export const compareCodeUnits = (a: string, b: string): number =>
-  a < b ? -1 : a > b ? 1 : 0;
+export function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
 
 export function parseIdentity(
   companyId: unknown,

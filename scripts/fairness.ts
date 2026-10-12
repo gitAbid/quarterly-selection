@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { replaySelection } from "../src/selection";
+import { replaySelection } from "../src/index";
 
 // Runs many independent draws of 8 vehicles at 25% (2 picked per draw)
 // and counts how often each vehicle was picked. Each should land near runs × 2/8.

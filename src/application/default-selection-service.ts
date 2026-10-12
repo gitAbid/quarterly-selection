@@ -1,29 +1,21 @@
 import { randomBytes } from "node:crypto";
-import { CURRENT_ALGORITHM } from "./algorithm";
-import { openAuditBundle } from "./audit";
-import { AesGcmSeedCipher, type SeedCipher } from "./crypto";
+import { CURRENT_ALGORITHM } from "../domain/algorithms/registry";
 import {
   SelectionInputError,
   SelectionNotFoundError,
   SelectionStorageError,
-} from "./errors";
-import { commitSeed, replaySelection, snapshotHash } from "./selection";
-import { SqliteSelectionStore, type SelectionStore, type StoredRun } from "./store";
+} from "../domain/errors";
 import type {
   AuditBundle,
   DrawInput,
-  RunOutcome,
   SelectionRunRecord,
-  SelectionService,
   ValidatedDrawInput,
-} from "./types";
-import { parseIdentity, validateDrawInput } from "./validation";
-
-export interface ServiceOptions {
-  databasePath: string;
-  encryptionKey: Uint8Array;
-  now?: () => Date;
-}
+} from "../domain/model";
+import { commitSeed, replaySelection, snapshotHash } from "../domain/selection";
+import { parseIdentity, validateDrawInput } from "../domain/validation";
+import { openAuditBundle } from "./audit-bundle";
+import type { SeedCipher, SelectionStore, StoredRun } from "./ports";
+import type { RunOutcome, SelectionService } from "./selection-service";
 
 /** Everything the service needs, passed in so each part can be swapped or faked. */
 export interface SelectionServiceDependencies {
@@ -34,28 +26,6 @@ export interface SelectionServiceDependencies {
 }
 
 const SEED_BYTES = 32;
-const randomSeed = (): string => randomBytes(SEED_BYTES).toString("hex");
-
-/**
- * Factory: wires the default SQLite store and AES-GCM cipher. The key is
- * checked before any file is created, and the key copy is zeroed again if
- * the database can't be opened.
- */
-export function openSelectionService(options: ServiceOptions): SelectionService {
-  const cipher = new AesGcmSeedCipher(options.encryptionKey);
-  let store: SelectionStore;
-  try {
-    store = new SqliteSelectionStore(options.databasePath);
-  } catch (error) {
-    cipher.dispose();
-    throw error;
-  }
-  return new DefaultSelectionService({
-    store,
-    cipher,
-    ...(options.now ? { clock: options.now } : {}),
-  });
-}
 
 /**
  * One draw per company and quarter. A draw is computed outside the write
@@ -155,4 +125,8 @@ export class DefaultSelectionService implements SelectionService {
         record.percentageBp === request.percentageBp,
     };
   }
+}
+
+function randomSeed(): string {
+  return randomBytes(SEED_BYTES).toString("hex");
 }

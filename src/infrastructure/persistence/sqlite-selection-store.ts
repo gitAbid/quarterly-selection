@@ -1,45 +1,13 @@
 import Database from "better-sqlite3";
 import { chmodSync } from "node:fs";
-import type { EncryptedSeed } from "./crypto";
-import { SelectionStorageError } from "./errors";
-import { parseRunRecord } from "./record";
-import type { SelectionIdentity, SelectionRunRecord } from "./types";
-
-export interface StoredRun {
-  readonly record: SelectionRunRecord;
-  readonly encrypted: EncryptedSeed;
-}
-
-export interface InsertResult {
-  /** The committed run: the candidate if it won, otherwise the existing one. */
-  readonly stored: StoredRun;
-  readonly inserted: boolean;
-}
-
-/**
- * Durable storage with at most one run per company and quarter (repository
- * pattern). The service depends on this interface, so a PostgreSQL store can
- * replace SQLite without changing the service.
- */
-export interface SelectionStore {
-  find(identity: SelectionIdentity): StoredRun | undefined;
-  /** Atomically inserts the candidate unless a run already exists. */
-  insertIfAbsent(candidate: StoredRun): InsertResult;
-  close(): void;
-}
-
-const SCHEMA_VERSION = 1;
-const BUSY_TIMEOUT_MS = 5000;
-
-const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS selection_runs (
-  company_id TEXT NOT NULL, quarter TEXT NOT NULL, public_record TEXT NOT NULL,
-  seed_ciphertext BLOB NOT NULL, seed_nonce BLOB NOT NULL, seed_tag BLOB NOT NULL,
-  schema_version INTEGER NOT NULL CHECK(schema_version = 1), PRIMARY KEY(company_id,quarter)
-) WITHOUT ROWID`;
-const SELECT_RUN =
-  "SELECT * FROM selection_runs WHERE company_id=? AND quarter=?";
-const INSERT_RUN = `INSERT INTO selection_runs VALUES (?,?,?,?,?,?,${SCHEMA_VERSION})
-  ON CONFLICT(company_id,quarter) DO NOTHING`;
+import type {
+  InsertResult,
+  SelectionStore,
+  StoredRun,
+} from "../../application/ports";
+import { SelectionStorageError } from "../../domain/errors";
+import type { SelectionIdentity } from "../../domain/model";
+import { parseRunRecord } from "../../domain/run-record-parser";
 
 interface SelectionRow {
   company_id: string;
@@ -61,6 +29,20 @@ type InsertParams = [
   tag: Buffer,
 ];
 
+const SCHEMA_VERSION = 1;
+const BUSY_TIMEOUT_MS = 5000;
+
+const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS selection_runs (
+  company_id TEXT NOT NULL, quarter TEXT NOT NULL, public_record TEXT NOT NULL,
+  seed_ciphertext BLOB NOT NULL, seed_nonce BLOB NOT NULL, seed_tag BLOB NOT NULL,
+  schema_version INTEGER NOT NULL CHECK(schema_version = 1), PRIMARY KEY(company_id,quarter)
+) WITHOUT ROWID`;
+const SELECT_RUN =
+  "SELECT * FROM selection_runs WHERE company_id=? AND quarter=?";
+const INSERT_RUN = `INSERT INTO selection_runs VALUES (?,?,?,?,?,?,${SCHEMA_VERSION})
+  ON CONFLICT(company_id,quarter) DO NOTHING`;
+
+/** SQLite adapter for SelectionStore: WAL, full sync, one row per company and quarter. */
 export class SqliteSelectionStore implements SelectionStore {
   private readonly db: Database.Database;
   private readonly selectRun: Database.Statement<IdentityParams, unknown>;

@@ -1,13 +1,11 @@
-import { isAlgorithmVersion } from "./algorithm";
+import { isAlgorithmVersion } from "./algorithms/registry";
 import { SelectionInputError } from "./errors";
-import type { SelectedVehicle, SelectionRunRecord } from "./types";
+import type { SelectedVehicle, SelectionRunRecord } from "./model";
 import { isRecord, isWellFormedText, validateDrawInput } from "./validation";
 
 const SHA256_HEX = /^[0-9a-f]{64}$/;
-const isSha256Hex = (value: unknown): value is string =>
-  typeof value === "string" && SHA256_HEX.test(value);
-const isCount = (value: unknown): value is number =>
-  Number.isSafeInteger(value) && typeof value === "number" && value >= 0;
+const MIN_BASIS_POINTS = 1;
+const MAX_BASIS_POINTS = 10_000;
 
 /**
  * Parses untrusted data (a database row or an audit file) into a run record.
@@ -24,8 +22,8 @@ export function parseRunRecord(value: unknown): SelectionRunRecord {
   if (
     typeof percentageBp !== "number" ||
     !Number.isSafeInteger(percentageBp) ||
-    percentageBp < 1 ||
-    percentageBp > 10_000
+    percentageBp < MIN_BASIS_POINTS ||
+    percentageBp > MAX_BASIS_POINTS
   )
     throw new SelectionInputError("invalid recorded percentage");
   const input = validateDrawInput({
@@ -81,4 +79,12 @@ function parseSelected(value: unknown): SelectedVehicle[] {
       throw new SelectionInputError("invalid selected entries");
     return { vehicleId: entry.vehicleId, rank: entry.rank, score: entry.score };
   });
+}
+
+function isSha256Hex(value: unknown): value is string {
+  return typeof value === "string" && SHA256_HEX.test(value);
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }

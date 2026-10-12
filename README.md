@@ -23,11 +23,11 @@ The demo prints the selected IDs twice, before and after a restart (they are the
 
 | Requirement from the brief | How it is met | Where |
 |---|---|---|
-| Input: active vehicles, percentage, quarter | Validated input object; the caller supplies the active vehicle IDs | `src/validation.ts` |
-| Every eligible vehicle has an equal chance | A fresh random 32-byte seed gives every vehicle a random score (HMAC-SHA-256); the lowest scores win | `src/selection.ts` |
-| An auditor can reproduce the result | Each draw stores its full input and its seed. `audit` exports them and `verify` recomputes the result | `src/audit.ts` |
+| Input: active vehicles, percentage, quarter | Validated input object; the caller supplies the active vehicle IDs | `src/domain/validation.ts` |
+| Every eligible vehicle has an equal chance | A fresh random 32-byte seed gives every vehicle a random score (HMAC-SHA-256); the lowest scores win | `src/domain/selection.ts` |
+| An auditor can reproduce the result | Each draw stores its full input and its seed. `audit` exports them and `verify` recomputes the result | `src/domain/audit-verification.ts` |
 | Last quarter's picks are still eligible | Nothing is excluded; every quarter is an independent draw | — |
-| Running twice gives no second selection | One database row per (company, quarter). A retry returns the stored draw and never draws again | `src/service.ts`, `src/store.ts` |
+| Running twice gives no second selection | One database row per (company, quarter). A retry returns the stored draw and never draws again | `src/application/default-selection-service.ts`, `src/infrastructure/persistence/sqlite-selection-store.ts` |
 | Works for 20 and 200,000 vehicles | Both are tested; 200,000 takes about 1–4 s on a laptop | `test/scale.test.ts` |
 
 ## How it works
@@ -94,7 +94,7 @@ npm run cli -- draw --db ./draws.sqlite --input examples/draw-input.json   # fir
 npm run cli -- draw --db ./draws.sqlite --input examples/draw-input.json   # second run: same draw, "reused": true
 npm run cli -- get  --db ./draws.sqlite --company co-1 --quarter 2026-Q4
 
-node --import tsx src/cli.ts audit --db ./draws.sqlite --company co-1 --quarter 2026-Q4 > audit.json
+node --import tsx src/cli/main.ts audit --db ./draws.sqlite --company co-1 --quarter 2026-Q4 > audit.json
 npm run verify -- audit.json                                              # "ok": true
 ```
 
@@ -164,33 +164,64 @@ These are intentionally out of scope for this exercise:
 - **Every read replays the draw.** `get` and retries decrypt the seed and recompute the selection as an integrity check. That costs about 0.5–2 s at 200,000 vehicles and needs the key. Later: run that check on audit only.
 - **Losing the key** makes stored draws unreadable. Later: key backup and rotation.
 - **Single-host storage.** SQLite is safe for several processes on one machine. In production the same store interface would sit on PostgreSQL.
-- **The `v1` algorithm** in `selection.ts`/`audit.ts` is a replay-only format kept from an earlier prototype, so the verifier can check older audit files. New draws always use `v2`. Later: remove it if no v1 files need verifying.
+- **The `v1` algorithm** in `src/domain/algorithms/legacy-v1.ts` is a replay-only format kept from an earlier prototype, so the verifier can check older audit files. New draws always use `v2`. Later: remove it if no v1 files need verifying.
 
 ## Code design
 
-- **Single responsibility:** each file does one job (see the layout below). `selection.ts` is pure, with no I/O, so the algorithm can be tested and replayed on its own.
-- **Dependency inversion:** `DefaultSelectionService` depends on two interfaces, `SelectionStore` and `SeedCipher`, not on SQLite or AES. `openSelectionService` is the factory that plugs in the defaults. A PostgreSQL store would implement `SelectionStore` with no service changes.
-- **Open/closed (strategy pattern):** each algorithm version is a `ScoringAlgorithm` entry in `algorithm.ts`. Adding a version means adding an entry; the selection code doesn't change.
+The code is split into layers. Dependencies only point inward: the domain imports nothing from the other layers, and the application layer never imports infrastructure.
+
+```mermaid
+flowchart LR
+  CLI["cli/<br/>commands, arguments"] --> Bootstrap["bootstrap/<br/>openSelectionService"]
+  Bootstrap --> App["application/<br/>service, ports"]
+  Bootstrap --> Infra["infrastructure/<br/>SQLite, AES-GCM"]
+  Infra -. implements .-> App
+  App --> Domain["domain/<br/>model, algorithms, validation"]
+  Infra --> Domain
+```
+
+- **Single responsibility:** each file does one job. The domain is pure, with no I/O, so the algorithm can be tested and replayed on its own.
+- **Dependency inversion:** `DefaultSelectionService` depends on two ports, `SelectionStore` and `SeedCipher`, not on SQLite or AES. The SQLite and AES-GCM adapters implement those ports. A PostgreSQL store would be a new adapter with no service changes.
+- **Open/closed (strategy pattern):** each algorithm version is its own `ScoringAlgorithm` file, registered in `registry.ts`. Adding a version means adding a file and one registry entry.
+- **Factory and composition root:** `bootstrap/open-selection-service.ts` is the only place that chooses the concrete adapters.
+- **Command pattern:** each CLI subcommand is a small function in a lookup `Map`.
 - **Type safety:** strict TypeScript with no `any`, no `as` casts and no `!` assertions in `src`. Untrusted data (JSON files, database rows, IPC messages) arrives as `unknown` and is narrowed by type guards and parsers.
 - **Error handling:** every deliberate error extends `SelectionError` with a `code` (`INVALID_INPUT`, `STORAGE`, `KEY`, `NOT_FOUND`). Messages are safe to show and never contain seeds, keys or raw SQLite text; the original error is kept in `cause`. The CLI maps errors to exit codes in one place.
+- **File order:** imports, then types, then constants, then exported functions or classes, then private helpers. Classes list fields, then the constructor, then public methods, then private methods.
 
 ## Project layout
 
 ```
 src/
-  algorithm.ts   versioned scoring strategies (v2 current, v1 replay-only)
-  selection.ts   pure selection: scoring, sorting, count rule (no I/O)
-  validation.ts  input validation and type guards
-  record.ts      parses untrusted stored or exported records into typed records
-  service.ts     createOrGet / get / exportAudit, plus the openSelectionService factory
-  store.ts       SelectionStore interface and its SQLite implementation
-  crypto.ts      SeedCipher interface and its AES-256-GCM implementation
-  audit.ts       audit bundle creation and verification
-  errors.ts      one SelectionError base class with a typed code
-  cli.ts         command line wrapper
-test/            unit, concurrency, crash-recovery, CLI and scale tests
-scripts/         demo, benchmark and fairness check
-docs/PLAN.md     the plan this was built from, with a delivery cross-check
-docs/REQUIREMENTS.md  acceptance matrix written before implementation
-evidence/        recorded test, benchmark and clean-install logs (see VERIFICATION.md)
+  index.ts                      public API (re-exports only)
+  domain/                       pure business rules, no I/O
+    model/                      data types: draw input, run record, audit bundle
+    algorithms/                 scoring strategies: interface, v1, v2, registry
+    selection.ts                scoring, sorting and the count rule
+    validation.ts               input validation and type guards
+    run-record-parser.ts        turns untrusted records into typed ones
+    audit-verification.ts       replays an audit bundle and reports each check
+    errors.ts                   SelectionError base class and subclasses
+  application/                  use cases
+    ports/                      SelectionStore and SeedCipher interfaces
+    selection-service.ts        the SelectionService contract
+    default-selection-service.ts  createOrGet / get / exportAudit
+    audit-bundle.ts             decrypts and verifies a stored run
+  infrastructure/               adapters that implement the ports
+    persistence/sqlite-selection-store.ts
+    crypto/aes-gcm-seed-cipher.ts
+  bootstrap/
+    open-selection-service.ts   factory that wires the default adapters
+  cli/
+    main.ts                     entry point
+    commands.ts                 draw, get, audit, verify
+    arguments.ts                flag and JSON file parsing
+    environment.ts              reads the encryption key
+    failures.ts                 usage errors and exit codes
+    types.ts
+test/                           unit, concurrency, crash-recovery, CLI and scale tests
+scripts/                        demo, benchmark and fairness check
+docs/PLAN.md                    the plan this was built from, with a delivery cross-check
+docs/REQUIREMENTS.md            acceptance matrix written before implementation
+evidence/                       recorded test, benchmark and clean-install logs (see VERIFICATION.md)
 ```

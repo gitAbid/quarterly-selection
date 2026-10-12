@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 import { input, key, setup } from "./helpers";
-const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
+const cli = fileURLToPath(new URL("../src/cli/main.ts", import.meta.url));
 const run = (
   args: string[],
   seedKey: string | null = key.toString("base64"),
