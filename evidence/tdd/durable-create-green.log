@@ -1,0 +1,9 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  16:46:38
+   Duration  174ms (transform 50%, import 27%, tests 19%, worker 4%)
+

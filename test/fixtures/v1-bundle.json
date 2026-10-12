@@ -1,0 +1,33 @@
+{
+  "record": {
+    "algorithmVersion": "v1",
+    "companyId": "co-1",
+    "quarter": "2026-Q4",
+    "percentageBp": 5000,
+    "eligibleCount": 4,
+    "selectedCount": 2,
+    "snapshotSha256": "2ca026c39676f7ed99991435a8bce55e089452390cf8d27b81a0cb6870146a20",
+    "selected": [
+      {
+        "vehicleId": "veh-b",
+        "rank": 1,
+        "score": "1454ba702c749783bb9b3cb396354176d282f468323af384dfdeaaab0de3c726"
+      },
+      {
+        "vehicleId": "veh-c",
+        "rank": 2,
+        "score": "1bd3278fd5840f3ff2608dac8059230a6f1cbc69bf875a0c2abfa044573b51db"
+      }
+    ],
+    "commitment": "fdcbc807d80f60c6f15ef644d5c372ac92760bd5f414cc3d48c3b320d9d1e689",
+    "eligibleVehicleIds": [
+      "veh-a",
+      "veh-b",
+      "veh-c",
+      "veh-d"
+    ],
+    "createdAt": "2026-10-01T00:00:00.000Z"
+  },
+  "revealedSeed": "legacy-secret",
+  "algorithm": "Historical v1 HMAC ranking; description is informational."
+}

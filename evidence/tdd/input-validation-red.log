@@ -1,0 +1,96 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/selection.test.ts (35 tests | 16 failed) 1962ms
+   × rejects invalid public input 0 without leaking its content 3ms
+   × rejects invalid public input 1 without leaking its content 0ms
+   × rejects invalid public input 2 without leaking its content 0ms
+   × rejects invalid public input 3 without leaking its content 0ms
+   × rejects invalid public input 4 without leaking its content 0ms
+   × rejects invalid public input 5 without leaking its content 0ms
+   × rejects invalid public input 6 without leaking its content 0ms
+   × rejects invalid public input 7 without leaking its content 0ms
+   × rejects invalid public input 8 without leaking its content 0ms
+   × rejects invalid public input 9 without leaking its content 0ms
+   × rejects invalid public input 10 without leaking its content 0ms
+   × rejects invalid public input 11 without leaking its content 0ms
+   × rejects invalid public input 12 without leaking its content 0ms
+   × rejects invalid public input 13 without leaking its content 0ms
+   × rejects invalid public input 14 without leaking its content 0ms
+   × rejects invalid public input 15 without leaking its content 0ms
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 19 passed (35)
+   Start at  16:41:27
+   Duration  2.13s (tests 98%, transform 1%, import 1%)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/selection.test.ts > rejects invalid public input 0 without leaking its content
+AssertionError: expected error to be instance of SelectionInputError
+
+- Expected:
+[Function SelectionInputError]
+
++ Received:
+TypeError {
+  "message": "Cannot read properties of null (reading 'vehicleIds')",
+}
+
+ ❯ test/selection.test.ts:32:56
+     30|   {...fixture,seed:'steer'}, {...fixture,seedHex:'steer'},
+     31| ])('rejects invalid public input %# without leaking its content', inpu…
+     32|   expect(()=>replaySelection(input as DrawInput,seed)).toThrow(Selecti…
+       |                                                        ^
+     33| });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  test/selection.test.ts > rejects invalid public input 1 without leaking its content
+AssertionError: expected error to be instance of SelectionInputError
+
+- Expected:
+[Function SelectionInputError]
+
++ Received:
+TypeError {
+  "message": "input.vehicleIds is not iterable",
+}
+
+ ❯ test/selection.test.ts:32:56
+     30|   {...fixture,seed:'steer'}, {...fixture,seedHex:'steer'},
+     31| ])('rejects invalid public input %# without leaking its content', inpu…
+     32|   expect(()=>replaySelection(input as DrawInput,seed)).toThrow(Selecti…
+       |                                                        ^
+     33| });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  test/selection.test.ts > rejects invalid public input 2 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 3 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 4 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 5 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 6 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 7 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 8 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 9 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 10 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 11 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 12 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 13 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 14 without leaking its content
+ FAIL  test/selection.test.ts > rejects invalid public input 15 without leaking its content
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:32:56
+     30|   {...fixture,seed:'steer'}, {...fixture,seedHex:'steer'},
+     31| ])('rejects invalid public input %# without leaking its content', inpu…
+     32|   expect(()=>replaySelection(input as DrawInput,seed)).toThrow(Selecti…
+       |                                                        ^
+     33| });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+

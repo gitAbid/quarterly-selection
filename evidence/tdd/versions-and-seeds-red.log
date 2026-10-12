@@ -1,0 +1,108 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/selection.test.ts (42 tests | 7 failed) 2130ms
+   × rejects malformed v2 seed 0 4ms
+   × rejects malformed v2 seed 1 0ms
+   × rejects malformed v2 seed 2 0ms
+   × rejects malformed v2 seed 3 0ms
+   × rejects malformed v2 seed 4 1ms
+   × rejects unsupported versions explicitly 0ms
+   × replays the independent legacy v1 fixture with its original UTF-8 seed contract 8ms
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 35 passed (42)
+   Start at  16:43:21
+   Duration  2.26s (tests 99%, transform 1%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/selection.test.ts > rejects malformed v2 seed 0
+ FAIL  test/selection.test.ts > rejects malformed v2 seed 1
+ FAIL  test/selection.test.ts > rejects malformed v2 seed 2
+ FAIL  test/selection.test.ts > rejects malformed v2 seed 3
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:35:56
+     33| });
+     34| it.each(['','not-hex','ab','f'.repeat(65),17])('rejects malformed v2 s…
+     35|   expect(()=>replaySelection(fixture,value as string)).toThrow(Selecti…
+       |                                                        ^
+     36| });
+     37| it('rejects unsupported versions explicitly',()=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  test/selection.test.ts > rejects malformed v2 seed 4
+AssertionError: expected error to be instance of SelectionInputError
+
+- Expected:
+[Function SelectionInputError]
+
++ Received:
+TypeError {
+  "message": "The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received type number (17)",
+  "code": "ERR_INVALID_ARG_TYPE",
+}
+
+ ❯ test/selection.test.ts:35:56
+     33| });
+     34| it.each(['','not-hex','ab','f'.repeat(65),17])('rejects malformed v2 s…
+     35|   expect(()=>replaySelection(fixture,value as string)).toThrow(Selecti…
+       |                                                        ^
+     36| });
+     37| it('rejects unsupported versions explicitly',()=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  test/selection.test.ts > rejects unsupported versions explicitly
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:38:60
+     36| });
+     37| it('rejects unsupported versions explicitly',()=>{
+     38|   expect(()=>replaySelection(fixture,seed,'v999' as 'v2')).toThrow(Sel…
+       |                                                            ^
+     39| });
+     40| it('replays the independent legacy v1 fixture with its original UTF-8 …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  test/selection.test.ts > replays the independent legacy v1 fixture with its original UTF-8 seed contract
+AssertionError: expected { algorithmVersion: 'v1', …(7) } to deeply equal { algorithmVersion: 'v1', …(7) }
+
+- Expected
++ Received
+
+@@ -5,17 +5,17 @@
+    "percentageBp": 5000,
+    "quarter": "2026-Q4",
+    "selected": [
+      {
+        "rank": 1,
+-       "score": "1454ba702c749783bb9b3cb396354176d282f468323af384dfdeaaab0de3c726",
+-       "vehicleId": "veh-b",
++       "score": "21d29c7a7a5d28221bd78e670b2b6f70448389a0ba42ce8acfca47c4cf96d939",
++       "vehicleId": "veh-d",
+      },
+      {
+        "rank": 2,
+-       "score": "1bd3278fd5840f3ff2608dac8059230a6f1cbc69bf875a0c2abfa044573b51db",
+-       "vehicleId": "veh-c",
++       "score": "58c97788b7a7e87661d5cad0fefc3756efe7a4b3115a605b738ebc58bb76d9ea",
++       "vehicleId": "veh-b",
+      },
+    ],
+    "selectedCount": 2,
+    "snapshotSha256": "2ca026c39676f7ed99991435a8bce55e089452390cf8d27b81a0cb6870146a20",
+  }
+
+ ❯ test/selection.test.ts:43:61
+     41|   const {default:bundle}=await import('./fixtures/v1-bundle.json');
+     42|   const {commitment,eligibleVehicleIds,createdAt,...result}=bundle.rec…
+     43|   expect(replaySelection(fixture,bundle.revealedSeed,'v1')).toEqual(re…
+       |                                                             ^
+     44| });
+     45|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+

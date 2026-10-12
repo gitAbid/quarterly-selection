@@ -1,0 +1,33 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/cli.test.ts (3 tests | 1 failed) 1065ms
+   × rejects invalid draw inputs before creating storage and without exposing the seed key 81ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  17:00:39
+   Duration  1.20s (tests 96%, transform 2%, import 1%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/cli.test.ts > rejects invalid draw inputs before creating storage and without exposing the seed key
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/cli.test.ts:31:88
+     29|   const {path,dir}=setup(),file=join(dir,'invalid.json');writeFileSync…
+     30|   const result=run(['draw','--db',path,'--input',file]);expect(result.…
+     31|   expect(result.stderr).not.toContain(key.toString('base64'));expect(e…
+       |                                                                                        ^
+     32| });
+     33|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

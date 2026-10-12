@@ -1,0 +1,30 @@
+{
+  "name": "fleetcheck-quarterly-selection",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Durable, reproducible quarterly vehicle selection for FleetCheck Part 4 Option A",
+  "type": "module",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || ^26.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "cli": "tsx src/cli.ts",
+    "demo": "tsx scripts/demo.ts",
+    "benchmark": "tsx scripts/benchmark.ts",
+    "tdd": "node scripts/tdd-check.mjs",
+    "verify": "tsx src/cli.ts verify"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "22.19.7",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  }
+}

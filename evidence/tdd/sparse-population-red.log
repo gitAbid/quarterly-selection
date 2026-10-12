@@ -1,0 +1,26 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/selection.test.ts (56 tests | 1 failed) 2982ms
+   × rejects sparse populations instead of selecting undefined vehicles 3ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 55 passed (56)
+   Start at  16:49:41
+   Duration  3.13s (tests 98%, transform 1%, import 1%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/selection.test.ts > rejects sparse populations instead of selecting undefined vehicles
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:73:89
+     71| });
+     72| it('rejects sparse populations instead of selecting undefined vehicles…
+     73|   expect(()=>replaySelection({...fixture,vehicleIds:new Array(1),perce…
+       |                                                                                         ^
+     74| });
+     75|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

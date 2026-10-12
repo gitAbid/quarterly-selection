@@ -1,0 +1,37 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/audit.test.ts (2 tests | 2 failed) 3ms
+   × accepts the independently generated v1 audit fixture 3ms
+   × returns a failed report for malformed external JSON instead of throwing 0ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  16:50:56
+   Duration  130ms (transform 53%, import 33%, tests 8%, worker 5%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/audit.test.ts > accepts the independently generated v1 audit fixture
+Error: Audit verification not implemented
+ ❯ verifyAuditBundle src/audit.ts:2:81
+      1| import type { VerificationReport } from './types';
+      2| export function verifyAuditBundle(_bundle: unknown): VerificationRepor…
+       |                                                                                 ^
+      3|
+ ❯ test/audit.test.ts:5:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/audit.test.ts > returns a failed report for malformed external JSON instead of throwing
+Error: Audit verification not implemented
+ ❯ verifyAuditBundle src/audit.ts:2:81
+      1| import type { VerificationReport } from './types';
+      2| export function verifyAuditBundle(_bundle: unknown): VerificationRepor…
+       |                                                                                 ^
+      3|
+ ❯ test/audit.test.ts:8:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

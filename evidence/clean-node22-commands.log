@@ -1,0 +1,17 @@
+Documented draw, retry, get, audit and npm run verify commands succeeded.
+
+> fleetcheck-quarterly-selection@2.0.0 verify
+> tsx src/cli.ts verify /tmp/fleetcheck-clean-node22-20261012/commands-audit.json
+
+{
+  "ok": true,
+  "checks": {
+    "algorithmSupported": true,
+    "commitmentMatchesSeed": true,
+    "snapshotHashMatches": true,
+    "eligibleCountMatches": true,
+    "selectedCountFollowsRule": true,
+    "selectionReproduced": true
+  },
+  "errors": []
+}

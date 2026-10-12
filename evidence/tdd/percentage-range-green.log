@@ -1,0 +1,10 @@
+
+ RUN  v2.1.9 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ✓ test/selection.test.ts (2 tests) 2ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:40:50
+   Duration  178ms (transform 31ms, setup 0ms, collect 28ms, tests 2ms, environment 0ms, prepare 44ms)
+

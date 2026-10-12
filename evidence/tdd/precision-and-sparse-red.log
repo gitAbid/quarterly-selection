@@ -1,0 +1,39 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/selection.test.ts (57 tests | 2 failed) 2877ms
+   × rejects sparse populations instead of selecting undefined vehicles 3ms
+   × rejects extra decimal digits even when close to a hundredth 0ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 55 passed (57)
+   Start at  16:50:25
+   Duration  3.02s (tests 98%, transform 1%, import 1%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/selection.test.ts > rejects sparse populations instead of selecting undefined vehicles
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:73:89
+     71| });
+     72| it('rejects sparse populations instead of selecting undefined vehicles…
+     73|   expect(()=>replaySelection({...fixture,vehicleIds:new Array(1),perce…
+       |                                                                                         ^
+     74| });
+     75| it('rejects extra decimal digits even when close to a hundredth',()=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/selection.test.ts > rejects extra decimal digits even when close to a hundredth
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:76:77
+     74| });
+     75| it('rejects extra decimal digits even when close to a hundredth',()=>{
+     76|   expect(()=>replaySelection({...fixture,percentage:12.340000000001},s…
+       |                                                                             ^
+     77| });
+     78|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

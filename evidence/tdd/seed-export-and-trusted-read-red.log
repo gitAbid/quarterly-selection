@@ -1,0 +1,52 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/seed.test.ts (2 tests | 2 failed) 21ms
+   × exports the retained seed explicitly, including after reopen, without plaintext persistence 14ms
+   × rejects malformed persisted records instead of returning a successful draw 6ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  16:52:07
+   Duration  138ms (transform 37%, tests 35%, import 24%, worker 4%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/seed.test.ts > exports the retained seed explicitly, including after reopen, without plaintext persistence
+Error: Audit export not implemented
+ ❯ Object.exportAudit src/service.ts:28:31
+     26|     },
+     27|     async get(companyId,quarter){ensureOpen();validateIdentity(company…
+     28|     async exportAudit(){throw new Error('Audit export not implemented'…
+       |                               ^
+     29|     async close(){if(!closed){store.close();key.fill(0);closed=true;}}
+     30|   };
+ ❯ test/seed.test.ts:9:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/seed.test.ts > rejects malformed persisted records instead of returning a successful draw
+AssertionError: promise resolved "{ companyId: 'co-1', …(2) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "algorithmVersion": "v2",
++   "companyId": "co-1",
++   "quarter": "2026-Q4",
+  }
+
+ ❯ test/seed.test.ts:25:59
+     23|   const db=new Database(path);
+     24|   db.prepare('UPDATE selection_runs SET public_record=?').run(JSON.str…
+     25|   await expect(service.get(input.companyId,input.quarter)).rejects.toT…
+       |                                                           ^
+     26|   await expect(service.createOrGet(input)).rejects.toThrow();
+     27|   expect(original.record.selectedCount).toBe(5);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

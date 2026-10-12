@@ -1,0 +1,26 @@
+
+ RUN  v2.1.9 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/selection.test.ts (2 tests | 1 failed) 6ms
+   × rejects zero percent rather than issuing an empty positive-policy draw 3ms
+     → expected function to throw an error, but it didn't
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  16:40:22
+   Duration  219ms (transform 38ms, setup 0ms, collect 36ms, tests 6ms, environment 0ms, prepare 51ms)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/selection.test.ts > rejects zero percent rather than issuing an empty positive-policy draw
+AssertionError: expected function to throw an error, but it didn't
+ ❯ test/selection.test.ts:17:63
+     15| });
+     16| it('rejects zero percent rather than issuing an empty positive-policy …
+     17|   expect(()=>replaySelection({...fixture,percentage:0},seed)).toThrow(…
+       |                                                               ^
+     18| });
+     19| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

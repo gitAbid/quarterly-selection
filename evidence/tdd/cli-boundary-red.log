@@ -1,0 +1,53 @@
+
+ RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+
+ ❯ test/cli.test.ts (2 tests | 2 failed) 222ms
+   × draws, reopens, reads, exports and verifies from independent CLI processes 158ms
+   × reports usage and unreadable/invalid JSON with exit code 2 64ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  16:57:23
+   Duration  374ms (tests 77%, transform 15%, import 6%, worker 1%)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/cli.test.ts > draws, reopens, reads, exports and verifies from independent CLI processes
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ test/cli.test.ts:14:77
+     12| it('draws, reopens, reads, exports and verifies from independent CLI p…
+     13|   const {path,dir}=setup(),file=join(dir,'input.json');writeFileSync(f…
+     14|   const first=run(['draw','--db',path,'--input',file]);expect(first.st…
+       |                                                                             ^
+     15|   expect(a.reused).toBe(false);expect(first.stdout+first.stderr).not.t…
+     16|   const second=run(['draw','--db',path,'--input',file]);expect(second.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/cli.test.ts > reports usage and unreadable/invalid JSON with exit code 2
+AssertionError: expected 1 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ test/cli.test.ts:25:50
+     23|   const {dir}=setup(),bad=join(dir,'bad.json');writeFileSync(bad,'{bro…
+     24|   for(const args of [[],['unknown'],['verify'],['verify',join(dir,'abs…
+     25|     const result=run(args);expect(result.status).toBe(2);expect(result…
+       |                                                  ^
+     26|   }
+     27| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

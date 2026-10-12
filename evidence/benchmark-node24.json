@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-12T11:14:16.589Z",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "runs": [
+    {
+      "runtime": "v24.19.0",
+      "vehicles": 20,
+      "selected": 5,
+      "milliseconds": {
+        "create": 3.455874999999992,
+        "reopenAndRetry": 1.3982500000000044,
+        "export": 0.28733300000000384,
+        "pureSelection": 0.16287499999999966,
+        "verify": 0.20333300000000065,
+        "total": 5.507666
+      },
+      "memoryBytes": {
+        "maxRss": 85475328,
+        "rss": 85458944,
+        "heapUsed": 9554328
+      },
+      "measurement": "one isolated child process per population; maxRss is whole-process peak, including SQLite, fixtures and retained records"
+    },
+    {
+      "runtime": "v24.19.0",
+      "vehicles": 200000,
+      "selected": 50000,
+      "milliseconds": {
+        "create": 4245.946958,
+        "reopenAndRetry": 1889.754,
+        "export": 1824.4795000000004,
+        "pureSelection": 1787.445584,
+        "verify": 2045.3391659999998,
+        "total": 11792.965208
+      },
+      "memoryBytes": {
+        "maxRss": 508002304,
+        "rss": 508002304,
+        "heapUsed": 285359528
+      },
+      "measurement": "one isolated child process per population; maxRss is whole-process peak, including SQLite, fixtures and retained records"
+    }
+  ]
+}

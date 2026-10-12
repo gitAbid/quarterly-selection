@@ -1,0 +1,13 @@
+
+> fleetcheck-quarterly-selection@2.0.0 test
+> vitest run
+
+
+ RUN  v5.0.4 /private/tmp/fleetcheck-clean-node24-20261012
+
+
+ Test Files  7 passed (7)
+      Tests  130 passed (130)
+   Start at  17:13:32
+   Duration  28.47s (tests 99%)
+

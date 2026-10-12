@@ -1,0 +1,33 @@
+
+> fleetcheck-quarterly-selection@2.0.0 demo
+> tsx scripts/demo.ts
+
+{
+  "firstSelected": [
+    "veh-02",
+    "veh-18",
+    "veh-13",
+    "veh-11",
+    "veh-08"
+  ],
+  "secondSelected": [
+    "veh-02",
+    "veh-18",
+    "veh-13",
+    "veh-11",
+    "veh-08"
+  ],
+  "reusedAfterReopen": true,
+  "verification": {
+    "ok": true,
+    "checks": {
+      "algorithmSupported": true,
+      "commitmentMatchesSeed": true,
+      "snapshotHashMatches": true,
+      "eligibleCountMatches": true,
+      "selectedCountFollowsRule": true,
+      "selectionReproduced": true
+    },
+    "errors": []
+  }
+}
