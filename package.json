@@ -13,6 +13,7 @@
     "cli": "tsx src/cli.ts",
     "demo": "tsx scripts/demo.ts",
     "benchmark": "tsx scripts/benchmark.ts",
+    "fairness": "tsx scripts/fairness.ts",
     "tdd": "node scripts/tdd-check.mjs",
     "verify": "tsx src/cli.ts verify"
   },

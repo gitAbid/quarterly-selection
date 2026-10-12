@@ -14,6 +14,7 @@ npm test            # 130 tests, takes about 15 seconds
 npm run typecheck
 npm run demo        # draws 20 vehicles, restarts, retries, then verifies an audit export
 npm run benchmark   # times 20 and 200,000 vehicles
+npm run fairness    # 100,000 draws: shows every vehicle is picked equally often
 ```
 
 The demo prints the selected IDs twice, before and after a restart (they are the same), followed by a verification report with `"ok": true`.
@@ -36,6 +37,49 @@ The demo prints the selected IDs twice, before and after a restart (they are the
 3. Otherwise **generate a random seed**, score each vehicle as `HMAC(seed, [company, quarter, vehicleId])`, sort by score and take the first `ceil(count × percentage)`.
 4. **Save** the draw (input, result and encrypted seed) in one transaction. If two processes race, the database keeps one and both callers get that one.
 5. **Audit:** `audit` exports the record with its seed. `verify` recomputes the selection from that file and checks that it matches. No key or database is needed for this step.
+
+### Worked example: 8 vehicles at 25%
+
+```mermaid
+flowchart LR
+  A["8 active vehicles<br/>25% → ceil(8 × 0.25) = 2"] --> B["Random 32-byte seed<br/>(new for each draw)"]
+  B --> C["Score each vehicle<br/>HMAC(seed, company, quarter, id)"]
+  C --> D["Sort by score<br/>lowest first"]
+  D --> E["Take the top 2<br/>VAN-2, VAN-7"]
+  E --> F["Save input + result + seed<br/>one draw per company and quarter"]
+```
+
+With a demo seed (`00…01`), each vehicle gets these scores (first 8 hex characters shown):
+
+| Rank | Vehicle | Score | Selected? |
+|---:|---|---|---|
+| 1 | VAN-2 | `0272759b…` | ✅ |
+| 2 | VAN-7 | `0cd9ae75…` | ✅ |
+| 3 | VAN-3 | `301990b4…` | |
+| 4 | VAN-5 | `679a6a33…` | |
+| 5 | VAN-6 | `945a22ad…` | |
+| 6 | VAN-1 | `b617e4ef…` | |
+| 7 | VAN-4 | `b8a74016…` | |
+| 8 | VAN-8 | `bc00ccda…` | |
+
+A different seed gives completely different scores, and so a different pair. The same seed always gives the same scores, which is what lets an auditor replay the draw.
+
+### Why every vehicle has the same chance
+
+- **The score knows nothing useful about the vehicle.** HMAC output looks like a random number. A vehicle's ID, its position in the list and whether it was picked last quarter can't push its score up or down.
+- **Every vehicle is scored the same way** with the same seed. No vehicle gets special treatment.
+- **So the sorted order is a random shuffle.** Every order of the 8 vehicles is equally likely, so each vehicle has the same 2-in-8 (25%) chance of landing in the top 2.
+- **Input order doesn't matter.** IDs are sorted before scoring, so listing the fleet differently can't change the result.
+
+You can check this yourself. `npm run fairness` runs 100,000 independent draws of these 8 vehicles and counts how often each was picked. The expected count is 25,000 each:
+
+| Vehicle | VAN-1 | VAN-2 | VAN-3 | VAN-4 | VAN-5 | VAN-6 | VAN-7 | VAN-8 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Times picked | 25,001 | 24,964 | 24,976 | 24,778 | 24,992 | 25,228 | 25,140 | 24,921 |
+
+Every vehicle is within 1% of 25,000, which is ordinary random variation at this sample size. Your numbers will differ slightly each run.
+
+Note that rounding up means the real chance is `selected ÷ fleet size`. For example, 7 vehicles at 25% selects 2, so each has a 2-in-7 (about 29%) chance. That is still equal for every vehicle.
 
 Why a random seed rather than a hash of the inputs: if the selection depended only on the inputs, anyone could predict which vehicles will be picked. The seed keeps the selection unpredictable until the audit export reveals it.
 
