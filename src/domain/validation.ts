@@ -32,19 +32,10 @@ export function compareCodeUnits(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-export function parseIdentity(
-  companyId: unknown,
-  quarter: unknown,
-): SelectionIdentity {
+export function parseIdentity(companyId: unknown, quarter: unknown): SelectionIdentity {
   if (!isWellFormedText(companyId))
-    throw new SelectionInputError(
-      "companyId must be a nonblank, well-formed string",
-    );
-  if (
-    typeof quarter !== "string" ||
-    !QUARTER.test(quarter) ||
-    quarter.startsWith("0000")
-  )
+    throw new SelectionInputError("companyId must be a nonblank, well-formed string");
+  if (typeof quarter !== "string" || !QUARTER.test(quarter) || quarter.startsWith("0000"))
     throw new SelectionInputError(
       "quarter must be YYYY-Q1 through YYYY-Q4, year 0001 through 9999",
     );
@@ -59,23 +50,17 @@ export function toBasisPoints(value: unknown): number {
     value < MIN_PERCENTAGE ||
     value > MAX_PERCENTAGE
   )
-    throw new SelectionInputError(
-      "percentage must be a finite number from 0.01 through 100",
-    );
+    throw new SelectionInputError("percentage must be a finite number from 0.01 through 100");
   const basisPoints = Math.round(value * 100);
   if (value !== basisPoints / 100)
-    throw new SelectionInputError(
-      "percentage supports at most two decimal places",
-    );
+    throw new SelectionInputError("percentage supports at most two decimal places");
   return basisPoints;
 }
 
 /** Returns sorted, duplicate-free copies; never mutates the caller's array. */
 export function canonicalVehicleIds(value: unknown): string[] {
   if (!isWellFormedTextArray(value))
-    throw new SelectionInputError(
-      "vehicleIds must be an array of nonblank, well-formed strings",
-    );
+    throw new SelectionInputError("vehicleIds must be an array of nonblank, well-formed strings");
   const ids = [...value].sort(compareCodeUnits);
   for (let i = 1; i < ids.length; i++)
     if (ids[i] === ids[i - 1])
@@ -84,13 +69,10 @@ export function canonicalVehicleIds(value: unknown): string[] {
 }
 
 export function validateDrawInput(value: unknown): ValidatedDrawInput {
-  if (!isRecord(value))
-    throw new SelectionInputError("draw input must be an object");
+  if (!isRecord(value)) throw new SelectionInputError("draw input must be an object");
   const { companyId, quarter } = parseIdentity(value.companyId, value.quarter);
   if ("seed" in value || "seedHex" in value)
-    throw new SelectionInputError(
-      "normal draw input must not contain a caller-chosen seed",
-    );
+    throw new SelectionInputError("normal draw input must not contain a caller-chosen seed");
   const percentageBp = toBasisPoints(value.percentage);
   return {
     companyId,

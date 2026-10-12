@@ -5,10 +5,7 @@ import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 import { input, key, setup } from "./helpers";
 const cli = fileURLToPath(new URL("../src/cli/main.ts", import.meta.url));
-const run = (
-  args: string[],
-  seedKey: string | null = key.toString("base64"),
-) => {
+const run = (args: string[], seedKey: string | null = key.toString("base64")) => {
   const env = { ...process.env };
   if (seedKey === null) delete env.FLEETCHECK_SEED_KEY;
   else env.FLEETCHECK_SEED_KEY = seedKey;
@@ -122,68 +119,28 @@ it("fails unknown audit runs, wrong export keys and invalid database paths witho
   const { path, dir } = setup(),
     file = join(dir, "input.json");
   writeFileSync(file, JSON.stringify(input));
-  const missing = run([
-    "audit",
-    "--db",
-    path,
-    "--company",
-    "missing",
-    "--quarter",
-    input.quarter,
-  ]);
+  const missing = run(["audit", "--db", path, "--company", "missing", "--quarter", input.quarter]);
   expect(missing.status).toBe(1);
   expect(missing.stdout).toBe("");
   expect(run(["draw", "--db", path, "--input", file]).status).toBe(0);
   const wrong = run(
-    [
-      "audit",
-      "--db",
-      path,
-      "--company",
-      input.companyId,
-      "--quarter",
-      input.quarter,
-    ],
+    ["audit", "--db", path, "--company", input.companyId, "--quarter", input.quarter],
     Buffer.alloc(32, 8).toString("base64"),
   );
   expect(wrong.status).toBe(1);
   expect(wrong.stdout).toBe("");
   expect(wrong.stderr).not.toContain(key.toString("base64"));
-  const failed = run([
-    "draw",
-    "--db",
-    join(dir, "missing", "draw.sqlite"),
-    "--input",
-    file,
-  ]);
+  const failed = run(["draw", "--db", join(dir, "missing", "draw.sqlite"), "--input", file]);
   expect(failed.status).toBe(1);
   expect(failed.stdout).toBe("");
   expect(
-    run([
-      "get",
-      "--db",
-      path,
-      "--company",
-      input.companyId,
-      "--quarter",
-      input.quarter,
-    ]).status,
+    run(["get", "--db", path, "--company", input.companyId, "--quarter", input.quarter]).status,
   ).toBe(0);
 });
 it("rejects duplicate flags and returns JSON null for a valid missing lookup", () => {
   const { path } = setup();
-  expect(
-    run(["get", "--db", path, "--db", path, "--quarter", input.quarter]).status,
-  ).toBe(2);
-  const result = run([
-    "get",
-    "--db",
-    path,
-    "--company",
-    "missing",
-    "--quarter",
-    input.quarter,
-  ]);
+  expect(run(["get", "--db", path, "--db", path, "--quarter", input.quarter]).status).toBe(2);
+  const result = run(["get", "--db", path, "--company", "missing", "--quarter", input.quarter]);
   expect(result.status).toBe(0);
   expect(JSON.parse(result.stdout)).toBeNull();
 });

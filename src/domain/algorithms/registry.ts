@@ -18,7 +18,6 @@ export function isAlgorithmVersion(value: unknown): value is AlgorithmVersion {
 }
 
 export function algorithmFor(version: unknown): ScoringAlgorithm {
-  if (!isAlgorithmVersion(version))
-    throw new SelectionInputError("unsupported algorithm version");
+  if (!isAlgorithmVersion(version)) throw new SelectionInputError("unsupported algorithm version");
   return ALGORITHMS[version];
 }

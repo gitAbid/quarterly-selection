@@ -159,9 +159,6 @@ it("catches throwing envelopes without echoing secret error text", () => {
 });
 it("detects missing selected entries and sparse arrays", () => {
   for (const selected of [null, [null], new Array(2)]) {
-    expect(
-      verifyAuditBundle({ ...legacy, record: { ...legacy.record, selected } })
-        .ok,
-    ).toBe(false);
+    expect(verifyAuditBundle({ ...legacy, record: { ...legacy.record, selected } }).ok).toBe(false);
   }
 });

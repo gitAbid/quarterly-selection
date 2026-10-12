@@ -1,9 +1,5 @@
 import { SelectionError, SelectionInputError } from "./errors";
-import type {
-  SelectionResult,
-  SelectionRunRecord,
-  VerificationReport,
-} from "./model";
+import type { SelectionResult, SelectionRunRecord, VerificationReport } from "./model";
 import { parseRunRecord } from "./run-record-parser";
 import { commitSeed, replaySelection, snapshotHash } from "./selection";
 import { isRecord } from "./validation";
@@ -46,10 +42,8 @@ export function verifyAuditBundle(bundle: unknown): VerificationReport {
       algorithmSupported: true,
       commitmentMatchesSeed:
         commitSeed(revealedSeed, record.algorithmVersion) === record.commitment,
-      snapshotHashMatches:
-        snapshotHash(record.eligibleVehicleIds) === record.snapshotSha256,
-      eligibleCountMatches:
-        record.eligibleVehicleIds.length === record.eligibleCount,
+      snapshotHashMatches: snapshotHash(record.eligibleVehicleIds) === record.snapshotSha256,
+      eligibleCountMatches: record.eligibleVehicleIds.length === record.eligibleCount,
       selectedCountFollowsRule:
         computed.selectedCount === record.selectedCount &&
         record.selected.length === record.selectedCount,
@@ -60,8 +54,7 @@ export function verifyAuditBundle(bundle: unknown): VerificationReport {
       .map(([name]) => `check failed: ${name}`);
     return { ok: errors.length === 0, checks, errors };
   } catch (error) {
-    const message =
-      error instanceof SelectionError ? error.message : UNEXPECTED_FAILURE;
+    const message = error instanceof SelectionError ? error.message : UNEXPECTED_FAILURE;
     return { ok: false, checks: {}, errors: [message] };
   }
 }
@@ -79,10 +72,7 @@ function parseBundle(bundle: unknown): ParsedBundle {
   };
 }
 
-function sameSelection(
-  computed: SelectionResult,
-  record: SelectionRunRecord,
-): boolean {
+function sameSelection(computed: SelectionResult, record: SelectionRunRecord): boolean {
   return (
     computed.selected.length === record.selected.length &&
     computed.selected.every((expected, i) => {

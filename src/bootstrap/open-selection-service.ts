@@ -15,9 +15,7 @@ export interface ServiceOptions {
  * used. The key is checked before any file is created, and the key copy is
  * zeroed again if the database can't be opened.
  */
-export function openSelectionService(
-  options: ServiceOptions,
-): SelectionService {
+export function openSelectionService(options: ServiceOptions): SelectionService {
   const cipher = new AesGcmSeedCipher(options.encryptionKey);
   let store: SelectionStore;
   try {

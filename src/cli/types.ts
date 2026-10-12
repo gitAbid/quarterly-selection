@@ -6,7 +6,4 @@ export interface CommandResult {
   readonly exitCode: ExitCode;
 }
 
-export type Command = (
-  args: readonly string[],
-  env: NodeJS.ProcessEnv,
-) => Promise<CommandResult>;
+export type Command = (args: readonly string[], env: NodeJS.ProcessEnv) => Promise<CommandResult>;

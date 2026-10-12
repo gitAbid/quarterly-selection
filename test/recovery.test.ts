@@ -7,9 +7,7 @@ import { message, start, stop } from "./process-helpers";
 it("returns one winner across ten independent processes with matching inputs", async () => {
   const { path } = setup();
   await open(path).close();
-  const workers = await Promise.all(
-    Array.from({ length: 10 }, () => start("draw", path)),
-  );
+  const workers = await Promise.all(Array.from({ length: 10 }, () => start("draw", path)));
   const waiting = workers.map((w) => message(w, "result"));
   workers.forEach((w) => w.send(input));
   const results = (await Promise.all(waiting)).map((v) => v.result);
@@ -18,18 +16,14 @@ it("returns one winner across ten independent processes with matching inputs", a
     expect(outcome.record).toEqual(results[0]?.record);
     expect(outcome.inputsMatch).toBe(true);
   }
-  expect(
-    verifyAuditBundle(
-      await open(path).exportAudit(input.companyId, input.quarter),
-    ).ok,
-  ).toBe(true);
+  expect(verifyAuditBundle(await open(path).exportAudit(input.companyId, input.quarter)).ok).toBe(
+    true,
+  );
 });
 it("returns the committed winner for concurrent conflicting populations and percentages", async () => {
   const { path } = setup();
   await open(path).close();
-  const workers = await Promise.all(
-    Array.from({ length: 10 }, () => start("draw", path)),
-  );
+  const workers = await Promise.all(Array.from({ length: 10 }, () => start("draw", path)));
   const requests = workers.map((_w, i) => ({
     ...input,
     percentage: i % 2 ? 50 : 25,
@@ -54,10 +48,9 @@ it("survives termination after a child process reports committed success", async
   await stop(child, "SIGKILL");
   const service = open(path);
   expect((await service.createOrGet(input)).record).toEqual(first.record);
-  expect(
-    verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter))
-      .ok,
-  ).toBe(true);
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
+    true,
+  );
 });
 it("recovers after terminating a real draw before its success response", async () => {
   const { path } = setup(),
@@ -76,10 +69,9 @@ it("recovers after terminating a real draw before its success response", async (
   if (prior) expect(recovered.record).toEqual(prior);
   else expect(recovered.reused).toBe(false);
   expect(recovered.record.selected).toHaveLength(50_000);
-  expect(
-    verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter))
-      .ok,
-  ).toBe(true);
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
+    true,
+  );
 });
 it("waits safely for external write contention that clears before five seconds", async () => {
   const { path } = setup(),
@@ -97,17 +89,10 @@ it("rolls back an open child-process write transaction after SIGKILL", async () 
   const child = await start("uncommitted", path); // ready is emitted after both writes.
   await stop(child, "SIGKILL");
   const reopened = open(path);
-  expect(await reopened.get(input.companyId, input.quarter)).toEqual(
-    first.record,
-  );
+  expect(await reopened.get(input.companyId, input.quarter)).toEqual(first.record);
   expect(await reopened.get(input.companyId, "2027-Q1")).toBeUndefined();
-  expect(
-    (await reopened.createOrGet({ ...input, quarter: "2027-Q1" })).reused,
-  ).toBe(false);
-  expect(
-    verifyAuditBundle(await reopened.exportAudit(input.companyId, "2027-Q1"))
-      .ok,
-  ).toBe(true);
+  expect((await reopened.createOrGet({ ...input, quarter: "2027-Q1" })).reused).toBe(false);
+  expect(verifyAuditBundle(await reopened.exportAudit(input.companyId, "2027-Q1")).ok).toBe(true);
 });
 it("times out under prolonged contention without false success and allows a safe retry", async () => {
   const { path } = setup(),
@@ -135,18 +120,14 @@ it("rolls back failed inserts and preserves earlier evidence, without exposing t
   db.exec(
     "CREATE TRIGGER reject_write BEFORE INSERT ON selection_runs BEGIN SELECT RAISE(ABORT,'private-database-error'); END",
   );
-  await expect(
-    service.createOrGet({ ...input, quarter: "2027-Q1" }),
-  ).rejects.toThrow("selection storage operation failed");
-  expect(await service.get(input.companyId, input.quarter)).toEqual(
-    first.record,
+  await expect(service.createOrGet({ ...input, quarter: "2027-Q1" })).rejects.toThrow(
+    "selection storage operation failed",
   );
+  expect(await service.get(input.companyId, input.quarter)).toEqual(first.record);
   expect(await service.get(input.companyId, "2027-Q1")).toBeUndefined();
   db.exec("DROP TRIGGER reject_write");
   db.close();
-  expect(
-    (await service.createOrGet({ ...input, quarter: "2027-Q1" })).reused,
-  ).toBe(false);
+  expect((await service.createOrGet({ ...input, quarter: "2027-Q1" })).reused).toBe(false);
 });
 it("rejects corrupt storage and future schema versions rather than starting a fallback store", async () => {
   const { path } = setup();

@@ -2,11 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach } from "vitest";
-import {
-  openSelectionService,
-  type DrawInput,
-  type SelectionService,
-} from "../src/index";
+import { openSelectionService, type DrawInput, type SelectionService } from "../src/index";
 export const input: DrawInput = {
   companyId: "co-1",
   quarter: "2026-Q4",
@@ -21,11 +17,7 @@ export function setup() {
   dirs.push(dir);
   return { dir, path: join(dir, "draws.sqlite") };
 }
-export function open(
-  path: string,
-  encryptionKey: Uint8Array = key,
-  now?: () => Date,
-) {
+export function open(path: string, encryptionKey: Uint8Array = key, now?: () => Date) {
   const service = openSelectionService({
     databasePath: path,
     encryptionKey,

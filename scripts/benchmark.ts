@@ -4,11 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  openSelectionService,
-  replaySelection,
-  verifyAuditBundle,
-} from "../src/index";
+import { openSelectionService, replaySelection, verifyAuditBundle } from "../src/index";
 if (process.argv[2] !== "--size") {
   const runs = [];
   for (const n of [20, 200_000]) {
@@ -34,8 +30,7 @@ if (process.argv[2] !== "--size") {
   );
 } else {
   const n = Number(process.argv[3]);
-  if (n !== 20 && n !== 200_000)
-    throw new Error("benchmark sizes are 20 or 200000");
+  if (n !== 20 && n !== 200_000) throw new Error("benchmark sizes are 20 or 200000");
   const dir = mkdtempSync(join(tmpdir(), "fleetcheck-bench-")),
     path = join(dir, "draw.sqlite"),
     key = randomBytes(32);
@@ -43,10 +38,7 @@ if (process.argv[2] !== "--size") {
     companyId: "benchmark",
     quarter: "2026-Q4",
     percentage: 25,
-    vehicleIds: Array.from(
-      { length: n },
-      (_, i) => `vehicle-${String(i).padStart(6, "0")}`,
-    ),
+    vehicleIds: Array.from({ length: n }, (_, i) => `vehicle-${String(i).padStart(6, "0")}`),
   };
   let service = openSelectionService({
     databasePath: path,

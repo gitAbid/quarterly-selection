@@ -14,8 +14,7 @@ const MAX_BASIS_POINTS = 10_000;
  * stored evidence by mutating what they get back.
  */
 export function parseRunRecord(value: unknown): SelectionRunRecord {
-  if (!isRecord(value))
-    throw new SelectionInputError("audit record must be an object");
+  if (!isRecord(value)) throw new SelectionInputError("audit record must be an object");
   const { algorithmVersion, percentageBp } = value;
   if (!isAlgorithmVersion(algorithmVersion))
     throw new SelectionInputError("unsupported algorithm version");
@@ -65,8 +64,7 @@ function parseTimestamp(value: unknown): string {
 }
 
 function parseSelected(value: unknown): SelectedVehicle[] {
-  if (!Array.isArray(value))
-    throw new SelectionInputError("invalid selected entries");
+  if (!Array.isArray(value)) throw new SelectionInputError("invalid selected entries");
   return Array.from(value, (entry: unknown) => {
     if (
       !isRecord(entry) ||

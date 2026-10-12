@@ -1,10 +1,6 @@
 import Database from "better-sqlite3";
 import { chmodSync } from "node:fs";
-import type {
-  InsertResult,
-  SelectionStore,
-  StoredRun,
-} from "../../application/ports";
+import type { InsertResult, SelectionStore, StoredRun } from "../../application/ports";
 import { SelectionStorageError } from "../../domain/errors";
 import type { SelectionIdentity } from "../../domain/model";
 import { parseRunRecord } from "../../domain/run-record-parser";
@@ -37,8 +33,7 @@ const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS selection_runs (
   seed_ciphertext BLOB NOT NULL, seed_nonce BLOB NOT NULL, seed_tag BLOB NOT NULL,
   schema_version INTEGER NOT NULL CHECK(schema_version = 1), PRIMARY KEY(company_id,quarter)
 ) WITHOUT ROWID`;
-const SELECT_RUN =
-  "SELECT * FROM selection_runs WHERE company_id=? AND quarter=?";
+const SELECT_RUN = "SELECT * FROM selection_runs WHERE company_id=? AND quarter=?";
 const INSERT_RUN = `INSERT INTO selection_runs VALUES (?,?,?,?,?,?,${SCHEMA_VERSION})
   ON CONFLICT(company_id,quarter) DO NOTHING`;
 
@@ -143,11 +138,7 @@ function decodeRow(row: unknown): StoredRun {
       },
     };
   } catch (cause) {
-    throw new SelectionStorageError(
-      "persisted selection evidence is invalid",
-      false,
-      { cause },
-    );
+    throw new SelectionStorageError("persisted selection evidence is invalid", false, { cause });
   }
 }
 
@@ -155,11 +146,8 @@ function decodeRow(row: unknown): StoredRun {
 function toStorageError(error: unknown): SelectionStorageError {
   if (error instanceof SelectionStorageError) return error;
   const code =
-    typeof error === "object" && error !== null && "code" in error
-      ? String(error.code)
-      : "";
-  const retryable =
-    code.startsWith("SQLITE_BUSY") || code.startsWith("SQLITE_LOCKED");
+    typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+  const retryable = code.startsWith("SQLITE_BUSY") || code.startsWith("SQLITE_LOCKED");
   return new SelectionStorageError(
     retryable
       ? "selection storage is busy; retry the request"

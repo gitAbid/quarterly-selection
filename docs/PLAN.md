@@ -84,10 +84,7 @@ interface RunOutcome {
 
 interface SelectionService {
   createOrGet(input: DrawInput): Promise<RunOutcome>;
-  get(
-    companyId: string,
-    quarter: string,
-  ): Promise<SelectionRunRecord | undefined>;
+  get(companyId: string, quarter: string): Promise<SelectionRunRecord | undefined>;
   exportAudit(companyId: string, quarter: string): Promise<AuditBundle>;
   close(): Promise<void>;
 }

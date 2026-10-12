@@ -51,16 +51,11 @@ export class DefaultSelectionService implements SelectionService {
     const request = validateDrawInput(input);
     const existing = this.store.find(request);
     if (existing) return this.outcome(existing, request, true);
-    const { stored, inserted } = this.store.insertIfAbsent(
-      this.newCandidate(request),
-    );
+    const { stored, inserted } = this.store.insertIfAbsent(this.newCandidate(request));
     return this.outcome(stored, request, !inserted);
   }
 
-  async get(
-    companyId: string,
-    quarter: string,
-  ): Promise<SelectionRunRecord | undefined> {
+  async get(companyId: string, quarter: string): Promise<SelectionRunRecord | undefined> {
     this.ensureOpen();
     const stored = this.store.find(parseIdentity(companyId, quarter));
     return stored && openAuditBundle(stored, this.cipher).record;
@@ -70,9 +65,7 @@ export class DefaultSelectionService implements SelectionService {
     this.ensureOpen();
     const stored = this.store.find(parseIdentity(companyId, quarter));
     if (!stored)
-      throw new SelectionNotFoundError(
-        "no selection exists for this company and quarter",
-      );
+      throw new SelectionNotFoundError("no selection exists for this company and quarter");
     return openAuditBundle(stored, this.cipher);
   }
 
@@ -87,8 +80,7 @@ export class DefaultSelectionService implements SelectionService {
   }
 
   private ensureOpen(): void {
-    if (this.closed)
-      throw new SelectionStorageError("selection service is closed");
+    if (this.closed) throw new SelectionStorageError("selection service is closed");
   }
 
   private newCandidate(request: ValidatedDrawInput): StoredRun {
@@ -111,11 +103,7 @@ export class DefaultSelectionService implements SelectionService {
   }
 
   /** Verifies the run, then reports whether it was drawn from this exact request. */
-  private outcome(
-    stored: StoredRun,
-    request: ValidatedDrawInput,
-    reused: boolean,
-  ): RunOutcome {
+  private outcome(stored: StoredRun, request: ValidatedDrawInput, reused: boolean): RunOutcome {
     const { record } = openAuditBundle(stored, this.cipher);
     return {
       record,

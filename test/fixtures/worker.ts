@@ -34,9 +34,7 @@ if (mode === "uncommitted") {
   process.on("message", async (input) => {
     process.send?.({ kind: "starting" });
     try {
-      const result = await service.createOrGet(
-        input as Parameters<typeof service.createOrGet>[0],
-      );
+      const result = await service.createOrGet(input as Parameters<typeof service.createOrGet>[0]);
       process.send?.({ kind: "result", result });
     } catch (e) {
       process.send?.({

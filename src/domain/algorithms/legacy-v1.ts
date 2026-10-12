@@ -10,9 +10,7 @@ export const legacyV1: ScoringAlgorithm = {
 
   hmacKey(seed) {
     if (!isWellFormedText(seed))
-      throw new SelectionInputError(
-        "legacy seed must be a nonblank, well-formed string",
-      );
+      throw new SelectionInputError("legacy seed must be a nonblank, well-formed string");
     return Buffer.from(seed, "utf8");
   },
 

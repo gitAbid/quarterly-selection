@@ -11,9 +11,7 @@ export const currentV2: ScoringAlgorithm = {
 
   hmacKey(seed) {
     if (typeof seed !== "string" || !SEED_HEX.test(seed))
-      throw new SelectionInputError(
-        "v2 seed must be 32 bytes encoded as lowercase hexadecimal",
-      );
+      throw new SelectionInputError("v2 seed must be 32 bytes encoded as lowercase hexadecimal");
     return Buffer.from(seed, "hex");
   },
 

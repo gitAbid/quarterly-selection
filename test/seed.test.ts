@@ -10,17 +10,13 @@ it("exports the retained seed explicitly, including after reopen, without plaint
     outcome = await service.createOrGet(input);
   const bundle = await service.exportAudit(input.companyId, input.quarter);
   expect(bundle.revealedSeed).toMatch(/^[0-9a-f]{64}$/);
-  expect(
-    createHash("sha256")
-      .update(Buffer.from(bundle.revealedSeed, "hex"))
-      .digest("hex"),
-  ).toBe(outcome.record.commitment);
+  expect(createHash("sha256").update(Buffer.from(bundle.revealedSeed, "hex")).digest("hex")).toBe(
+    outcome.record.commitment,
+  );
   expect(bundle.record).toEqual(outcome.record);
   expect(verifyAuditBundle(bundle).ok).toBe(true);
   await service.close();
-  expect(await open(path).exportAudit(input.companyId, input.quarter)).toEqual(
-    bundle,
-  );
+  expect(await open(path).exportAudit(input.companyId, input.quarter)).toEqual(bundle);
   for (const name of [path, path + "-wal", path + "-shm"]) {
     let bytes: Buffer;
     try {
@@ -55,16 +51,10 @@ it("fails with a wrong key on read/retry/export and never replaces the original"
     service = open(path),
     original = await service.createOrGet(input);
   const wrong = open(path, Buffer.alloc(32, 8));
-  await expect(
-    wrong.exportAudit(input.companyId, input.quarter),
-  ).rejects.toThrow(/authenticated/);
+  await expect(wrong.exportAudit(input.companyId, input.quarter)).rejects.toThrow(/authenticated/);
   await expect(wrong.createOrGet(input)).rejects.toThrow(/authenticated/);
-  await expect(wrong.get(input.companyId, input.quarter)).rejects.toThrow(
-    /authenticated/,
-  );
-  expect(await service.get(input.companyId, input.quarter)).toEqual(
-    original.record,
-  );
+  await expect(wrong.get(input.companyId, input.quarter)).rejects.toThrow(/authenticated/);
+  expect(await service.get(input.companyId, input.quarter)).toEqual(original.record);
 });
 it.each(["seed_ciphertext", "seed_nonce", "seed_tag"])(
   "rejects damaged %s without returning a replacement draw",
@@ -73,21 +63,19 @@ it.each(["seed_ciphertext", "seed_nonce", "seed_tag"])(
       service = open(path);
     const original = await service.createOrGet(input);
     const db = new Database(path);
-    const row = db
-      .prepare(`SELECT ${column} AS value FROM selection_runs`)
-      .get() as { value: Buffer };
+    const row = db.prepare(`SELECT ${column} AS value FROM selection_runs`).get() as {
+      value: Buffer;
+    };
     const damaged = Buffer.from(row.value);
     damaged[0] = damaged[0]! ^ 1;
     db.prepare(`UPDATE selection_runs SET ${column}=?`).run(damaged);
-    await expect(
-      service.exportAudit(input.companyId, input.quarter),
-    ).rejects.toThrow(/authenticated/);
+    await expect(service.exportAudit(input.companyId, input.quarter)).rejects.toThrow(
+      /authenticated/,
+    );
     await expect(service.createOrGet(input)).rejects.toThrow(/authenticated/);
     db.prepare(`UPDATE selection_runs SET ${column}=?`).run(row.value);
     db.close();
-    expect(await service.get(input.companyId, input.quarter)).toEqual(
-      original.record,
-    );
+    expect(await service.get(input.companyId, input.quarter)).toEqual(original.record);
   },
 );
 it("authenticates run identity against ciphertext copied from another company", async () => {
@@ -97,9 +85,7 @@ it("authenticates run identity against ciphertext copied from another company", 
   await service.createOrGet({ ...input, companyId: "co-2" });
   const db = new Database(path);
   const source = db
-    .prepare(
-      "SELECT seed_ciphertext,seed_nonce,seed_tag FROM selection_runs WHERE company_id=?",
-    )
+    .prepare("SELECT seed_ciphertext,seed_nonce,seed_tag FROM selection_runs WHERE company_id=?")
     .get("co-1") as {
     seed_ciphertext: Buffer;
     seed_nonce: Buffer;
@@ -109,9 +95,7 @@ it("authenticates run identity against ciphertext copied from another company", 
     "UPDATE selection_runs SET seed_ciphertext=?,seed_nonce=?,seed_tag=? WHERE company_id=?",
   ).run(source.seed_ciphertext, source.seed_nonce, source.seed_tag, "co-2");
   db.close();
-  await expect(service.exportAudit("co-2", input.quarter)).rejects.toThrow(
-    /authenticated/,
-  );
+  await expect(service.exportAudit("co-2", input.quarter)).rejects.toThrow(/authenticated/);
   expect(await service.get("co-1", input.quarter)).toBeDefined();
 });
 it("rejects inconsistent selected evidence on read as well as export", async () => {
@@ -120,16 +104,10 @@ it("rejects inconsistent selected evidence on read as well as export", async () 
   const { record } = await service.createOrGet(input);
   record.selected[0]!.vehicleId = "not-eligible";
   const db = new Database(path);
-  db.prepare("UPDATE selection_runs SET public_record=?").run(
-    JSON.stringify(record),
-  );
+  db.prepare("UPDATE selection_runs SET public_record=?").run(JSON.stringify(record));
   db.close();
-  await expect(service.get(input.companyId, input.quarter)).rejects.toThrow(
-    /inconsistent/,
-  );
-  await expect(
-    service.exportAudit(input.companyId, input.quarter),
-  ).rejects.toThrow(/inconsistent/);
+  await expect(service.get(input.companyId, input.quarter)).rejects.toThrow(/inconsistent/);
+  await expect(service.exportAudit(input.companyId, input.quarter)).rejects.toThrow(/inconsistent/);
 });
 it("exports detached evidence and reports an unknown run clearly", async () => {
   const { path } = setup(),
@@ -139,9 +117,7 @@ it("exports detached evidence and reports an unknown run clearly", async () => {
     copy = structuredClone(first);
   first.record.selected.length = 0;
   first.record.eligibleVehicleIds.length = 0;
-  expect(await service.exportAudit(input.companyId, input.quarter)).toEqual(
-    copy,
-  );
+  expect(await service.exportAudit(input.companyId, input.quarter)).toEqual(copy);
   await expect(service.exportAudit("missing", input.quarter)).rejects.toThrow(
     /no selection exists/,
   );
@@ -152,10 +128,9 @@ it("does not mutate or retain the caller-owned key buffer", async () => {
     service = open(path, callerKey);
   await service.createOrGet(input);
   callerKey.fill(0);
-  expect(
-    verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter))
-      .ok,
-  ).toBe(true);
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
+    true,
+  );
   await service.close();
   expect(key).toEqual(Buffer.alloc(32, 7));
 });

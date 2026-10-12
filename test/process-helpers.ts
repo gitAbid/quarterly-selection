@@ -19,12 +19,7 @@ function isMessage<K extends keyof WorkerMessages>(
   value: unknown,
   kind: K,
 ): value is WorkerMessages[K] {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "kind" in value &&
-    value.kind === kind
-  );
+  return typeof value === "object" && value !== null && "kind" in value && value.kind === kind;
 }
 
 export function message<K extends keyof WorkerMessages>(
@@ -78,10 +73,7 @@ export async function start(mode: string, path: string, duration = 0) {
   }
   return child;
 }
-export async function stop(
-  child: ChildProcess,
-  signal: NodeJS.Signals = "SIGTERM",
-) {
+export async function stop(child: ChildProcess, signal: NodeJS.Signals = "SIGTERM") {
   if (child.exitCode !== null || child.signalCode !== null) return;
   await new Promise<void>((resolve) => {
     child.once("exit", () => resolve());

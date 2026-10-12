@@ -24,13 +24,8 @@ it.each([20, 200_000])(
     expect(again.inputsMatch).toBe(true);
     expect(again.reused).toBe(true);
     expect(first.record.selectedCount).toBe(n / 4);
-    expect(new Set(first.record.selected.map((s) => s.vehicleId)).size).toBe(
-      n / 4,
-    );
-    const bundle = await reopened.exportAudit(
-      request.companyId,
-      request.quarter,
-    );
+    expect(new Set(first.record.selected.map((s) => s.vehicleId)).size).toBe(n / 4);
+    const bundle = await reopened.exportAudit(request.companyId, request.quarter);
     expect(verifyAuditBundle(bundle).ok).toBe(true);
     const before = performance.now(),
       pure = replaySelection(request, bundle.revealedSeed),
@@ -46,9 +41,7 @@ it.each([20, 200_000])(
     expect(changed.record).toEqual(first.record);
     bundle.record.selected[0]!.vehicleId = "not-eligible";
     expect(verifyAuditBundle(bundle).ok).toBe(false);
-    expect(
-      (await reopened.get(request.companyId, request.quarter))?.selectedCount,
-    ).toBe(n / 4);
+    expect((await reopened.get(request.companyId, request.quarter))?.selectedCount).toBe(n / 4);
     console.log(
       JSON.stringify({
         vehicles: n,

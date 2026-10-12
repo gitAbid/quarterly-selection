@@ -1,8 +1,4 @@
-import type {
-  AuditBundle,
-  DrawInput,
-  SelectionRunRecord,
-} from "../domain/model";
+import type { AuditBundle, DrawInput, SelectionRunRecord } from "../domain/model";
 
 export interface RunOutcome {
   record: SelectionRunRecord;
@@ -16,10 +12,7 @@ export interface RunOutcome {
 export interface SelectionService {
   createOrGet(input: DrawInput): Promise<RunOutcome>;
 
-  get(
-    companyId: string,
-    quarter: string,
-  ): Promise<SelectionRunRecord | undefined>;
+  get(companyId: string, quarter: string): Promise<SelectionRunRecord | undefined>;
 
   exportAudit(companyId: string, quarter: string): Promise<AuditBundle>;
 

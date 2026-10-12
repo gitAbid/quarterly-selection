@@ -1,9 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import type {
-  EncryptedSeed,
-  SeedBinding,
-  SeedCipher,
-} from "../../application/ports";
+import type { EncryptedSeed, SeedBinding, SeedCipher } from "../../application/ports";
 import { SelectionKeyError } from "../../domain/errors";
 
 const ALGORITHM = "aes-256-gcm";
@@ -28,10 +24,7 @@ export class AesGcmSeedCipher implements SeedCipher {
     const nonce = randomBytes(NONCE_BYTES);
     const cipher = createCipheriv(ALGORITHM, this.key, nonce);
     cipher.setAAD(associatedData(binding));
-    const ciphertext = Buffer.concat([
-      cipher.update(Buffer.from(seedHex, "hex")),
-      cipher.final(),
-    ]);
+    const ciphertext = Buffer.concat([cipher.update(Buffer.from(seedHex, "hex")), cipher.final()]);
     return { ciphertext, nonce, tag: cipher.getAuthTag() };
   }
 
@@ -41,15 +34,11 @@ export class AesGcmSeedCipher implements SeedCipher {
       const decipher = createDecipheriv(ALGORITHM, this.key, encrypted.nonce);
       decipher.setAAD(associatedData(binding));
       decipher.setAuthTag(encrypted.tag);
-      seed = Buffer.concat([
-        decipher.update(encrypted.ciphertext),
-        decipher.final(),
-      ]);
+      seed = Buffer.concat([decipher.update(encrypted.ciphertext), decipher.final()]);
     } catch (cause) {
       throw new SelectionKeyError(AUTHENTICATION_FAILED, { cause });
     }
-    if (seed.length !== SEED_BYTES)
-      throw new SelectionKeyError(AUTHENTICATION_FAILED);
+    if (seed.length !== SEED_BYTES) throw new SelectionKeyError(AUTHENTICATION_FAILED);
     return seed.toString("hex");
   }
 
@@ -60,11 +49,7 @@ export class AesGcmSeedCipher implements SeedCipher {
 
 function associatedData(binding: SeedBinding): Buffer {
   return Buffer.from(
-    JSON.stringify([
-      binding.algorithmVersion,
-      binding.companyId,
-      binding.quarter,
-    ]),
+    JSON.stringify([binding.algorithmVersion, binding.companyId, binding.quarter]),
     "utf8",
   );
 }

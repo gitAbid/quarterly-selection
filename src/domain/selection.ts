@@ -26,10 +26,7 @@ export function replaySelection(
   const algorithm = algorithmFor(version);
   const key = algorithm.hmacKey(seedHex);
   const valid = validateDrawInput(input);
-  const selectedCount = selectedCountFor(
-    valid.vehicleIds.length,
-    valid.percentageBp,
-  );
+  const selectedCount = selectedCountFor(valid.vehicleIds.length, valid.percentageBp);
   const ranked = rankVehicles(algorithm, key, valid);
   return {
     algorithmVersion: algorithm.version,
@@ -39,33 +36,21 @@ export function replaySelection(
     eligibleCount: valid.vehicleIds.length,
     selectedCount,
     snapshotSha256: snapshotHash(valid.vehicleIds),
-    selected: ranked
-      .slice(0, selectedCount)
-      .map((vehicle, i) => ({ ...vehicle, rank: i + 1 })),
+    selected: ranked.slice(0, selectedCount).map((vehicle, i) => ({ ...vehicle, rank: i + 1 })),
   };
 }
 
 /** ceil(eligible × basisPoints / 10,000), in exact integer arithmetic. */
-export function selectedCountFor(
-  eligible: number,
-  basisPoints: number,
-): number {
-  return Math.floor(
-    (eligible * basisPoints + BASIS_POINTS_PER_WHOLE - 1) /
-      BASIS_POINTS_PER_WHOLE,
-  );
+export function selectedCountFor(eligible: number, basisPoints: number): number {
+  return Math.floor((eligible * basisPoints + BASIS_POINTS_PER_WHOLE - 1) / BASIS_POINTS_PER_WHOLE);
 }
 
 export function snapshotHash(canonicalIds: readonly string[]): string {
-  return createHash("sha256")
-    .update(JSON.stringify(canonicalIds), "utf8")
-    .digest("hex");
+  return createHash("sha256").update(JSON.stringify(canonicalIds), "utf8").digest("hex");
 }
 
 export function commitSeed(seed: string, version: AlgorithmVersion): string {
-  return createHash("sha256")
-    .update(algorithmFor(version).hmacKey(seed))
-    .digest("hex");
+  return createHash("sha256").update(algorithmFor(version).hmacKey(seed)).digest("hex");
 }
 
 function rankVehicles(
@@ -77,15 +62,10 @@ function rankVehicles(
     .map((vehicleId) => ({
       vehicleId,
       score: createHmac("sha256", key)
-        .update(
-          algorithm.message(input.companyId, input.quarter, vehicleId),
-          "utf8",
-        )
+        .update(algorithm.message(input.companyId, input.quarter, vehicleId), "utf8")
         .digest("hex"),
     }))
     .sort(
-      (a, b) =>
-        compareCodeUnits(a.score, b.score) ||
-        compareCodeUnits(a.vehicleId, b.vehicleId),
+      (a, b) => compareCodeUnits(a.score, b.score) || compareCodeUnits(a.vehicleId, b.vehicleId),
     );
 }

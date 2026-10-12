@@ -9,13 +9,9 @@ it("creates a committed draw retrievable through the public service", async () =
   expect(outcome.record.selectedCount).toBe(5);
   expect(outcome.record.selected).toHaveLength(5);
   expect(outcome.record.algorithmVersion).toBe("v2");
-  expect(await service.get(input.companyId, input.quarter)).toEqual(
-    outcome.record,
-  );
+  expect(await service.get(input.companyId, input.quarter)).toEqual(outcome.record);
   expect(outcome.record.commitment).toMatch(/^[0-9a-f]{64}$/);
-  expect(JSON.stringify(outcome)).not.toMatch(
-    /seedHex|revealedSeed|ciphertext|encryptionKey/,
-  );
+  expect(JSON.stringify(outcome)).not.toMatch(/seedHex|revealedSeed|ciphertext|encryptionKey/);
 });
 it("reuses the original even after population/percentage changes and reopening", async () => {
   const { path } = setup(),
@@ -74,12 +70,8 @@ it("uses distinct durable identities and an injected clock", async () => {
     service = open(path, undefined, () => new Date("2026-10-01T00:00:00Z"));
   const first = await service.createOrGet(input);
   expect(first.record.createdAt).toBe("2026-10-01T00:00:00.000Z");
-  expect(
-    (await service.createOrGet({ ...input, companyId: "co-2" })).reused,
-  ).toBe(false);
-  expect(
-    (await service.createOrGet({ ...input, quarter: "2027-Q1" })).reused,
-  ).toBe(false);
+  expect((await service.createOrGet({ ...input, companyId: "co-2" })).reused).toBe(false);
+  expect((await service.createOrGet({ ...input, quarter: "2027-Q1" })).reused).toBe(false);
   expect(await service.get("missing", "2026-Q4")).toBeUndefined();
 });
 it("has no success or in-memory fallback after storage errors", async () => {
@@ -87,24 +79,17 @@ it("has no success or in-memory fallback after storage errors", async () => {
     service = open(path),
     a = await service.createOrGet(input);
   await service.close();
-  await expect(
-    service.createOrGet({ ...input, quarter: "2027-Q1" }),
-  ).rejects.toThrow(/closed/);
-  expect(await open(path).get(input.companyId, input.quarter)).toEqual(
-    a.record,
-  );
+  await expect(service.createOrGet({ ...input, quarter: "2027-Q1" })).rejects.toThrow(/closed/);
+  expect(await open(path).get(input.companyId, input.quarter)).toEqual(a.record);
   expect(() => open(path + "/missing/child.sqlite")).toThrow(/storage/);
 });
-it.each([
-  new Uint8Array(0),
-  new Uint8Array(31),
-  new Uint8Array(33),
-  null,
-  "not-a-key",
-])("rejects invalid key configuration %#", (value) => {
-  const { path } = setup();
-  expect(() => open(path, value as Uint8Array)).toThrow(/32 bytes/);
-});
+it.each([new Uint8Array(0), new Uint8Array(31), new Uint8Array(33), null, "not-a-key"])(
+  "rejects invalid key configuration %#",
+  (value) => {
+    const { path } = setup();
+    expect(() => open(path, value as Uint8Array)).toThrow(/32 bytes/);
+  },
+);
 it("rejects invalid lookup identity and clock without committing", async () => {
   const { path } = setup(),
     service = open(path, undefined, () => new Date(NaN));

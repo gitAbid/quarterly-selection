@@ -18,9 +18,7 @@ export class UsageError extends Error {
 
 /** Only messages from our own errors are shown; anything unexpected stays generic. */
 export function describeFailure(error: unknown): Failure {
-  if (error instanceof UsageError)
-    return { message: error.message, exitCode: 2 };
-  if (error instanceof SelectionError)
-    return { message: error.message, exitCode: 1 };
+  if (error instanceof UsageError) return { message: error.message, exitCode: 2 };
+  if (error instanceof SelectionError) return { message: error.message, exitCode: 1 };
   return { message: UNEXPECTED_FAILURE, exitCode: 1 };
 }
