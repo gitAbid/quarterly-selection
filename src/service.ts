@@ -1,122 +1,158 @@
 import { randomBytes } from "node:crypto";
-import { copyKey, decryptSeed, encryptSeed } from "./crypto";
+import { CURRENT_ALGORITHM } from "./algorithm";
+import { openAuditBundle } from "./audit";
+import { AesGcmSeedCipher, type SeedCipher } from "./crypto";
 import {
   SelectionInputError,
   SelectionNotFoundError,
   SelectionStorageError,
 } from "./errors";
 import { commitSeed, replaySelection, snapshotHash } from "./selection";
-import {
-  algorithmDescription,
-  validateRunRecord,
-  verifyAuditBundle,
-} from "./audit";
-import { SqliteStore, type StoredRun } from "./store";
+import { SqliteSelectionStore, type SelectionStore, type StoredRun } from "./store";
 import type {
+  AuditBundle,
   DrawInput,
   RunOutcome,
   SelectionRunRecord,
   SelectionService,
+  ValidatedDrawInput,
 } from "./types";
-import { validateDrawInput, validateIdentity } from "./validation";
+import { parseIdentity, validateDrawInput } from "./validation";
+
 export interface ServiceOptions {
   databasePath: string;
   encryptionKey: Uint8Array;
   now?: () => Date;
 }
-export function openSelectionService(
-  options: ServiceOptions,
-): SelectionService {
-  const key = copyKey(options?.encryptionKey),
-    store = new SqliteStore(options.databasePath);
-  let closed = false;
-  const ensureOpen = () => {
-    if (closed) throw new SelectionStorageError("selection service is closed");
-  };
-  const auditFor = (stored: StoredRun) => {
+
+/** Everything the service needs, passed in so each part can be swapped or faked. */
+export interface SelectionServiceDependencies {
+  readonly store: SelectionStore;
+  readonly cipher: SeedCipher;
+  readonly clock?: () => Date;
+  readonly generateSeed?: () => string;
+}
+
+const SEED_BYTES = 32;
+const randomSeed = (): string => randomBytes(SEED_BYTES).toString("hex");
+
+/**
+ * Factory: wires the default SQLite store and AES-GCM cipher. The key is
+ * checked before any file is created, and the key copy is zeroed again if
+ * the database can't be opened.
+ */
+export function openSelectionService(options: ServiceOptions): SelectionService {
+  const cipher = new AesGcmSeedCipher(options.encryptionKey);
+  let store: SelectionStore;
+  try {
+    store = new SqliteSelectionStore(options.databasePath);
+  } catch (error) {
+    cipher.dispose();
+    throw error;
+  }
+  return new DefaultSelectionService({
+    store,
+    cipher,
+    ...(options.now ? { clock: options.now } : {}),
+  });
+}
+
+/**
+ * One draw per company and quarter. A draw is computed outside the write
+ * transaction, inserted only if none exists, and every run returned is first
+ * checked to replay exactly.
+ */
+export class DefaultSelectionService implements SelectionService {
+  private readonly store: SelectionStore;
+  private readonly cipher: SeedCipher;
+  private readonly clock: () => Date;
+  private readonly generateSeed: () => string;
+  private closed = false;
+
+  constructor(deps: SelectionServiceDependencies) {
+    this.store = deps.store;
+    this.cipher = deps.cipher;
+    this.clock = deps.clock ?? (() => new Date());
+    this.generateSeed = deps.generateSeed ?? randomSeed;
+  }
+
+  async createOrGet(input: DrawInput): Promise<RunOutcome> {
+    this.ensureOpen();
+    const request = validateDrawInput(input);
+    const existing = this.store.find(request);
+    if (existing) return this.outcome(existing, request, true);
+    const { stored, inserted } = this.store.insertIfAbsent(
+      this.newCandidate(request),
+    );
+    return this.outcome(stored, request, !inserted);
+  }
+
+  async get(
+    companyId: string,
+    quarter: string,
+  ): Promise<SelectionRunRecord | undefined> {
+    this.ensureOpen();
+    const stored = this.store.find(parseIdentity(companyId, quarter));
+    return stored && openAuditBundle(stored, this.cipher).record;
+  }
+
+  async exportAudit(companyId: string, quarter: string): Promise<AuditBundle> {
+    this.ensureOpen();
+    const stored = this.store.find(parseIdentity(companyId, quarter));
+    if (!stored)
+      throw new SelectionNotFoundError(
+        "no selection exists for this company and quarter",
+      );
+    return openAuditBundle(stored, this.cipher);
+  }
+
+  async close(): Promise<void> {
+    if (this.closed) return;
+    this.closed = true;
     try {
-      validateRunRecord(stored.record);
-    } catch {
-      throw new SelectionStorageError(
-        "persisted selection evidence is invalid",
-      );
+      this.store.close();
+    } finally {
+      this.cipher.dispose();
     }
-    const bundle = {
-      record: stored.record,
-      revealedSeed: decryptSeed(stored.encrypted, key, stored.record),
-      algorithm: algorithmDescription(stored.record.algorithmVersion),
+  }
+
+  private ensureOpen(): void {
+    if (this.closed)
+      throw new SelectionStorageError("selection service is closed");
+  }
+
+  private newCandidate(request: ValidatedDrawInput): StoredRun {
+    const createdAt = this.timestamp();
+    const seed = this.generateSeed();
+    const record: SelectionRunRecord = {
+      ...replaySelection(request, seed, CURRENT_ALGORITHM),
+      commitment: commitSeed(seed, CURRENT_ALGORITHM),
+      eligibleVehicleIds: [...request.vehicleIds],
+      createdAt,
     };
-    if (!verifyAuditBundle(bundle).ok)
-      throw new SelectionStorageError(
-        "persisted selection evidence is inconsistent",
-      );
-    return bundle;
-  };
-  const matches = (
-    record: SelectionRunRecord,
-    input: DrawInput & { percentageBp: number },
-  ) =>
-    record.snapshotSha256 === snapshotHash(input.vehicleIds) &&
-    record.percentageBp === input.percentageBp;
-  return {
-    async createOrGet(input: DrawInput): Promise<RunOutcome> {
-      ensureOpen();
-      const valid = validateDrawInput(input);
-      const existing = store.read(valid.companyId, valid.quarter);
-      if (existing) {
-        auditFor(existing);
-        return {
-          record: existing.record,
-          reused: true,
-          inputsMatch: matches(existing.record, valid),
-        };
-      }
-      const seed = randomBytes(32).toString("hex");
-      const result = replaySelection(valid, seed);
-      const date = options.now?.() ?? new Date();
-      if (!(date instanceof Date) || !Number.isFinite(date.getTime()))
-        throw new SelectionInputError("clock must return a valid date");
-      const record: SelectionRunRecord = {
-        ...result,
-        commitment: commitSeed(seed, "v2"),
-        eligibleVehicleIds: [...valid.vehicleIds],
-        createdAt: date.toISOString(),
-      };
-      const { stored, inserted } = store.insertOrGet({
-        record,
-        encrypted: encryptSeed(seed, key, record),
-      });
-      auditFor(stored);
-      return {
-        record: stored.record,
-        reused: !inserted,
-        inputsMatch: matches(stored.record, valid),
-      };
-    },
-    async get(companyId, quarter) {
-      ensureOpen();
-      validateIdentity(companyId, quarter);
-      const stored = store.read(companyId, quarter);
-      if (!stored) return undefined;
-      auditFor(stored);
-      return stored.record;
-    },
-    async exportAudit(companyId, quarter) {
-      ensureOpen();
-      validateIdentity(companyId, quarter);
-      const stored = store.read(companyId, quarter);
-      if (!stored)
-        throw new SelectionNotFoundError(
-          "no selection exists for this company and quarter",
-        );
-      return auditFor(stored);
-    },
-    async close() {
-      if (!closed) {
-        store.close();
-        key.fill(0);
-        closed = true;
-      }
-    },
-  };
+    return { record, encrypted: this.cipher.encrypt(seed, record) };
+  }
+
+  private timestamp(): string {
+    const date: unknown = this.clock();
+    if (!(date instanceof Date) || !Number.isFinite(date.getTime()))
+      throw new SelectionInputError("clock must return a valid date");
+    return date.toISOString();
+  }
+
+  /** Verifies the run, then reports whether it was drawn from this exact request. */
+  private outcome(
+    stored: StoredRun,
+    request: ValidatedDrawInput,
+    reused: boolean,
+  ): RunOutcome {
+    const { record } = openAuditBundle(stored, this.cipher);
+    return {
+      record,
+      reused,
+      inputsMatch:
+        record.snapshotSha256 === snapshotHash(request.vehicleIds) &&
+        record.percentageBp === request.percentageBp,
+    };
+  }
 }

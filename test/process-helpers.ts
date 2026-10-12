@@ -1,16 +1,38 @@
 import { fork, type ChildProcess } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { afterEach } from "vitest";
+import type { RunOutcome } from "../src/index";
 import { key } from "./helpers";
+
+/** Messages the worker fixture sends back over IPC, by kind. */
+interface WorkerMessages {
+  ready: { kind: "ready" };
+  starting: { kind: "starting" };
+  result: { kind: "result"; result: RunOutcome };
+  error: { kind: "error"; message: string };
+}
+
 const children: ChildProcess[] = [];
-export function message(child: ChildProcess, kind: string): Promise<any> {
+
+/** IPC data is untyped; the worker fixture is trusted to send the shapes above. */
+function isMessage<K extends keyof WorkerMessages>(
+  value: unknown,
+  kind: K,
+): value is WorkerMessages[K] {
+  return typeof value === "object" && value !== null && "kind" in value && value.kind === kind;
+}
+
+export function message<K extends keyof WorkerMessages>(
+  child: ChildProcess,
+  kind: K,
+): Promise<WorkerMessages[K]> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       cleanup();
       reject(new Error(`worker ${kind} timeout`));
     }, 15000);
-    const onMessage = (value: any) => {
-      if (value?.kind === kind) {
+    const onMessage = (value: unknown) => {
+      if (isMessage(value, kind)) {
         cleanup();
         resolve(value);
       }

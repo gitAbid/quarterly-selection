@@ -15,7 +15,7 @@ it("returns one winner across ten independent processes with matching inputs", a
   const results = (await Promise.all(waiting)).map((v) => v.result);
   expect(results.filter((v) => !v.reused)).toHaveLength(1);
   for (const outcome of results) {
-    expect(outcome.record).toEqual(results[0].record);
+    expect(outcome.record).toEqual(results[0]?.record);
     expect(outcome.inputsMatch).toBe(true);
   }
   expect(
@@ -41,7 +41,7 @@ it("returns the committed winner for concurrent conflicting populations and perc
     winner = results.findIndex((v) => !v.reused);
   expect(results.filter((v) => !v.reused)).toHaveLength(1);
   for (const [i, outcome] of results.entries()) {
-    expect(outcome.record).toEqual(results[winner].record);
+    expect(outcome.record).toEqual(results[winner]?.record);
     expect(outcome.inputsMatch).toBe(i === winner);
   }
 });

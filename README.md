@@ -166,16 +166,27 @@ These are intentionally out of scope for this exercise:
 - **Single-host storage.** SQLite is safe for several processes on one machine. In production the same store interface would sit on PostgreSQL.
 - **The `v1` algorithm** in `selection.ts`/`audit.ts` is a replay-only format kept from an earlier prototype, so the verifier can check older audit files. New draws always use `v2`. Later: remove it if no v1 files need verifying.
 
+## Code design
+
+- **Single responsibility:** each file does one job (see the layout below). `selection.ts` is pure, with no I/O, so the algorithm can be tested and replayed on its own.
+- **Dependency inversion:** `DefaultSelectionService` depends on two interfaces, `SelectionStore` and `SeedCipher`, not on SQLite or AES. `openSelectionService` is the factory that plugs in the defaults. A PostgreSQL store would implement `SelectionStore` with no service changes.
+- **Open/closed (strategy pattern):** each algorithm version is a `ScoringAlgorithm` entry in `algorithm.ts`. Adding a version means adding an entry; the selection code doesn't change.
+- **Type safety:** strict TypeScript with no `any`, no `as` casts and no `!` assertions in `src`. Untrusted data (JSON files, database rows, IPC messages) arrives as `unknown` and is narrowed by type guards and parsers.
+- **Error handling:** every deliberate error extends `SelectionError` with a `code` (`INVALID_INPUT`, `STORAGE`, `KEY`, `NOT_FOUND`). Messages are safe to show and never contain seeds, keys or raw SQLite text; the original error is kept in `cause`. The CLI maps errors to exit codes in one place.
+
 ## Project layout
 
 ```
 src/
+  algorithm.ts   versioned scoring strategies (v2 current, v1 replay-only)
   selection.ts   pure selection: scoring, sorting, count rule (no I/O)
-  validation.ts  input validation
-  service.ts     createOrGet / get / exportAudit (the public API)
-  store.ts       SQLite persistence, one row per company+quarter
-  crypto.ts      AES-256-GCM encryption of the stored seed
-  audit.ts       audit bundle validation and verification
+  validation.ts  input validation and type guards
+  record.ts      parses untrusted stored or exported records into typed records
+  service.ts     createOrGet / get / exportAudit, plus the openSelectionService factory
+  store.ts       SelectionStore interface and its SQLite implementation
+  crypto.ts      SeedCipher interface and its AES-256-GCM implementation
+  audit.ts       audit bundle creation and verification
+  errors.ts      one SelectionError base class with a typed code
   cli.ts         command line wrapper
 test/            unit, concurrency, crash-recovery, CLI and scale tests
 scripts/         demo, benchmark and fairness check
