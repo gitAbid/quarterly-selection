@@ -5,8 +5,30 @@ const QUARTER = /^\d{4}-Q[1-4]$/;
 const MIN_PERCENTAGE = 0.01;
 const MAX_PERCENTAGE = 100;
 
+export function validateDrawInput(value: unknown): ValidatedDrawInput {
+  if (!isRecord(value)) throw new SelectionInputError("draw input must be an object");
+  const { companyId, quarter } = parseIdentity(value.companyId, value.quarter);
+  if ("seed" in value || "seedHex" in value)
+    throw new SelectionInputError("normal draw input must not contain a caller-chosen seed");
+  const percentageBp = toBasisPoints(value.percentage);
+  return {
+    companyId,
+    quarter,
+    percentage: percentageBp / 100,
+    percentageBp,
+    vehicleIds: canonicalVehicleIds(value.vehicleIds),
+  };
+}
+
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function parseIdentity(companyId: unknown, quarter: unknown): SelectionIdentity {
+  if (!isWellFormedText(companyId)) throw new SelectionInputError("companyId must be a nonblank, well-formed string");
+  if (typeof quarter !== "string" || !QUARTER.test(quarter) || quarter.startsWith("0000"))
+    throw new SelectionInputError("quarter must be YYYY-Q1 through YYYY-Q4, year 0001 through 9999");
+  return { companyId, quarter };
 }
 
 /** A nonblank string with no lone UTF-16 surrogates. */
@@ -20,23 +42,6 @@ export function isWellFormedText(value: unknown): value is string {
     } else if (unit >= 0xdc00 && unit <= 0xdfff) return false;
   }
   return true;
-}
-
-/** Rejects sparse arrays too: Array.from turns holes into undefined. */
-export function isWellFormedTextArray(value: unknown): value is string[] {
-  return Array.isArray(value) && Array.from(value).every(isWellFormedText);
-}
-
-/** Locale-independent ordering by UTF-16 code units. */
-export function compareCodeUnits(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
-export function parseIdentity(companyId: unknown, quarter: unknown): SelectionIdentity {
-  if (!isWellFormedText(companyId)) throw new SelectionInputError("companyId must be a nonblank, well-formed string");
-  if (typeof quarter !== "string" || !QUARTER.test(quarter) || quarter.startsWith("0000"))
-    throw new SelectionInputError("quarter must be YYYY-Q1 through YYYY-Q4, year 0001 through 9999");
-  return { companyId, quarter };
 }
 
 /** Converts a percentage with at most two decimals into integer basis points. */
@@ -58,17 +63,12 @@ export function canonicalVehicleIds(value: unknown): string[] {
   return ids;
 }
 
-export function validateDrawInput(value: unknown): ValidatedDrawInput {
-  if (!isRecord(value)) throw new SelectionInputError("draw input must be an object");
-  const { companyId, quarter } = parseIdentity(value.companyId, value.quarter);
-  if ("seed" in value || "seedHex" in value)
-    throw new SelectionInputError("normal draw input must not contain a caller-chosen seed");
-  const percentageBp = toBasisPoints(value.percentage);
-  return {
-    companyId,
-    quarter,
-    percentage: percentageBp / 100,
-    percentageBp,
-    vehicleIds: canonicalVehicleIds(value.vehicleIds),
-  };
+/** Rejects sparse arrays too: Array.from turns holes into undefined. */
+export function isWellFormedTextArray(value: unknown): value is string[] {
+  return Array.isArray(value) && Array.from(value).every(isWellFormedText);
+}
+
+/** Locale-independent ordering by UTF-16 code units. */
+export function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }

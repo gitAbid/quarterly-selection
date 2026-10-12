@@ -73,6 +73,17 @@ export class DefaultSelectionService implements SelectionService {
     if (this.closed) throw new SelectionStorageError("selection service is closed");
   }
 
+  /** Verifies the run, then reports whether it was drawn from this exact request. */
+  private outcome(stored: StoredRun, request: ValidatedDrawInput, reused: boolean): RunOutcome {
+    const { record } = openAuditBundle(stored, this.cipher);
+    return {
+      record,
+      reused,
+      inputsMatch:
+        record.snapshotSha256 === snapshotHash(request.vehicleIds) && record.percentageBp === request.percentageBp,
+    };
+  }
+
   private newCandidate(request: ValidatedDrawInput): StoredRun {
     const createdAt = this.timestamp();
     const seed = this.generateSeed();
@@ -90,17 +101,6 @@ export class DefaultSelectionService implements SelectionService {
     if (!(date instanceof Date) || !Number.isFinite(date.getTime()))
       throw new SelectionInputError("clock must return a valid date");
     return date.toISOString();
-  }
-
-  /** Verifies the run, then reports whether it was drawn from this exact request. */
-  private outcome(stored: StoredRun, request: ValidatedDrawInput, reused: boolean): RunOutcome {
-    const { record } = openAuditBundle(stored, this.cipher);
-    return {
-      record,
-      reused,
-      inputsMatch:
-        record.snapshotSha256 === snapshotHash(request.vehicleIds) && record.percentageBp === request.percentageBp,
-    };
   }
 }
 

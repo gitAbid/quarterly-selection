@@ -193,7 +193,7 @@ flowchart LR
 - **Command pattern:** each CLI subcommand is a small function in a lookup `Map`.
 - **Type safety:** strict TypeScript with no `any`, no `as` casts and no `!` assertions in `src`. Untrusted data (JSON files, database rows, IPC messages) arrives as `unknown` and is narrowed by type guards and parsers.
 - **Error handling:** every deliberate error extends `SelectionError` with a `code` (`INVALID_INPUT`, `STORAGE`, `KEY`, `NOT_FOUND`). Messages are safe to show and never contain seeds, keys or raw SQLite text; the original error is kept in `cause`. The CLI maps errors to exit codes in one place.
-- **File order:** imports, then types, then constants, then exported functions or classes, then private helpers. Classes list fields, then the constructor, then public methods, then private methods.
+- **File order:** imports, then types, then constants, then exported functions or classes, then private helpers. Classes list fields, then the constructor, then public methods, then private methods. Within each group, callers come before the helpers they call, in the order they are first used.
 
 ## Project layout
 

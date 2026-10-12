@@ -50,6 +50,14 @@ export function parseRunRecord(value: unknown): SelectionRunRecord {
   };
 }
 
+function isCount(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isSha256Hex(value: unknown): value is string {
+  return typeof value === "string" && SHA256_HEX.test(value);
+}
+
 function parseTimestamp(value: unknown): string {
   if (typeof value !== "string" || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value)
     throw new SelectionInputError("invalid creation timestamp");
@@ -70,12 +78,4 @@ function parseSelected(value: unknown): SelectedVehicle[] {
       throw new SelectionInputError("invalid selected entries");
     return { vehicleId: entry.vehicleId, rank: entry.rank, score: entry.score };
   });
-}
-
-function isSha256Hex(value: unknown): value is string {
-  return typeof value === "string" && SHA256_HEX.test(value);
-}
-
-function isCount(value: unknown): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }

@@ -49,10 +49,6 @@ export async function runCli(argv: readonly string[], env: NodeJS.ProcessEnv): P
   return command(args, env);
 }
 
-function succeed(output: unknown): CommandResult {
-  return { output, exitCode: 0 };
-}
-
 /** Opens the service only after all input is valid, and always closes it. */
 async function withService(
   databasePath: string,
@@ -68,4 +64,8 @@ async function withService(
     key.fill(0);
     await service?.close();
   }
+}
+
+function succeed(output: unknown): CommandResult {
+  return { output, exitCode: 0 };
 }

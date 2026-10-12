@@ -103,17 +103,15 @@ export class SqliteSelectionStore implements SelectionStore {
   }
 }
 
-function isSelectionRow(row: unknown): row is SelectionRow {
-  if (typeof row !== "object" || row === null) return false;
-  const r: Partial<Record<keyof SelectionRow, unknown>> = row;
-  return (
-    typeof r.company_id === "string" &&
-    typeof r.quarter === "string" &&
-    typeof r.public_record === "string" &&
-    Buffer.isBuffer(r.seed_ciphertext) &&
-    Buffer.isBuffer(r.seed_nonce) &&
-    Buffer.isBuffer(r.seed_tag) &&
-    r.schema_version === SCHEMA_VERSION
+/** Hides raw SQLite messages; marks lock contention as safe to retry. */
+function toStorageError(error: unknown): SelectionStorageError {
+  if (error instanceof SelectionStorageError) return error;
+  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+  const retryable = code.startsWith("SQLITE_BUSY") || code.startsWith("SQLITE_LOCKED");
+  return new SelectionStorageError(
+    retryable ? "selection storage is busy; retry the request" : "selection storage operation failed",
+    retryable,
+    { cause: error },
   );
 }
 
@@ -137,14 +135,16 @@ function decodeRow(row: unknown): StoredRun {
   }
 }
 
-/** Hides raw SQLite messages; marks lock contention as safe to retry. */
-function toStorageError(error: unknown): SelectionStorageError {
-  if (error instanceof SelectionStorageError) return error;
-  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
-  const retryable = code.startsWith("SQLITE_BUSY") || code.startsWith("SQLITE_LOCKED");
-  return new SelectionStorageError(
-    retryable ? "selection storage is busy; retry the request" : "selection storage operation failed",
-    retryable,
-    { cause: error },
+function isSelectionRow(row: unknown): row is SelectionRow {
+  if (typeof row !== "object" || row === null) return false;
+  const r: Partial<Record<keyof SelectionRow, unknown>> = row;
+  return (
+    typeof r.company_id === "string" &&
+    typeof r.quarter === "string" &&
+    typeof r.public_record === "string" &&
+    Buffer.isBuffer(r.seed_ciphertext) &&
+    Buffer.isBuffer(r.seed_nonce) &&
+    Buffer.isBuffer(r.seed_tag) &&
+    r.schema_version === SCHEMA_VERSION
   );
 }

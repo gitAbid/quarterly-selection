@@ -13,11 +13,11 @@ const ALGORITHMS: Readonly<Record<AlgorithmVersion, ScoringAlgorithm>> = {
 /** New draws always use this version; older versions are replay-only. */
 export const CURRENT_ALGORITHM: AlgorithmVersion = "v2";
 
-export function isAlgorithmVersion(value: unknown): value is AlgorithmVersion {
-  return ALGORITHM_VERSIONS.some((version) => version === value);
-}
-
 export function algorithmFor(version: unknown): ScoringAlgorithm {
   if (!isAlgorithmVersion(version)) throw new SelectionInputError("unsupported algorithm version");
   return ALGORITHMS[version];
+}
+
+export function isAlgorithmVersion(value: unknown): value is AlgorithmVersion {
+  return ALGORITHM_VERSIONS.some((version) => version === value);
 }
