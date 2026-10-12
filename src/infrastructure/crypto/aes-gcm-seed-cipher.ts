@@ -6,8 +6,7 @@ const ALGORITHM = "aes-256-gcm";
 const KEY_BYTES = 32;
 const NONCE_BYTES = 12;
 const SEED_BYTES = 32;
-const AUTHENTICATION_FAILED =
-  "retained seed could not be authenticated; check key and stored evidence";
+const AUTHENTICATION_FAILED = "retained seed could not be authenticated; check key and stored evidence";
 
 /** AES-256-GCM with a fresh nonce per seed and the draw identity as associated data. */
 export class AesGcmSeedCipher implements SeedCipher {
@@ -48,8 +47,5 @@ export class AesGcmSeedCipher implements SeedCipher {
 }
 
 function associatedData(binding: SeedBinding): Buffer {
-  return Buffer.from(
-    JSON.stringify([binding.algorithmVersion, binding.companyId, binding.quarter]),
-    "utf8",
-  );
+  return Buffer.from(JSON.stringify([binding.algorithmVersion, binding.companyId, binding.quarter]), "utf8");
 }

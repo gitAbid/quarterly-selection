@@ -8,11 +8,9 @@ import { openSelectionService, replaySelection, verifyAuditBundle } from "../src
 if (process.argv[2] !== "--size") {
   const runs = [];
   for (const n of [20, 200_000]) {
-    const r = spawnSync(
-      process.execPath,
-      ["--import", "tsx", fileURLToPath(import.meta.url), "--size", String(n)],
-      { encoding: "utf8" },
-    );
+    const r = spawnSync(process.execPath, ["--import", "tsx", fileURLToPath(import.meta.url), "--size", String(n)], {
+      encoding: "utf8",
+    });
     if (r.status !== 0) throw new Error("benchmark child failed");
     runs.push(JSON.parse(r.stdout) as unknown);
   }

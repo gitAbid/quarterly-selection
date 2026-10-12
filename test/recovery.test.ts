@@ -16,9 +16,7 @@ it("returns one winner across ten independent processes with matching inputs", a
     expect(outcome.record).toEqual(results[0]?.record);
     expect(outcome.inputsMatch).toBe(true);
   }
-  expect(verifyAuditBundle(await open(path).exportAudit(input.companyId, input.quarter)).ok).toBe(
-    true,
-  );
+  expect(verifyAuditBundle(await open(path).exportAudit(input.companyId, input.quarter)).ok).toBe(true);
 });
 it("returns the committed winner for concurrent conflicting populations and percentages", async () => {
   const { path } = setup();
@@ -48,9 +46,7 @@ it("survives termination after a child process reports committed success", async
   await stop(child, "SIGKILL");
   const service = open(path);
   expect((await service.createOrGet(input)).record).toEqual(first.record);
-  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
-    true,
-  );
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(true);
 });
 it("recovers after terminating a real draw before its success response", async () => {
   const { path } = setup(),
@@ -69,9 +65,7 @@ it("recovers after terminating a real draw before its success response", async (
   if (prior) expect(recovered.record).toEqual(prior);
   else expect(recovered.reused).toBe(false);
   expect(recovered.record.selected).toHaveLength(50_000);
-  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
-    true,
-  );
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(true);
 });
 it("waits safely for external write contention that clears before five seconds", async () => {
   const { path } = setup(),

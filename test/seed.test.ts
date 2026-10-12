@@ -69,9 +69,7 @@ it.each(["seed_ciphertext", "seed_nonce", "seed_tag"])(
     const damaged = Buffer.from(row.value);
     damaged[0] = damaged[0]! ^ 1;
     db.prepare(`UPDATE selection_runs SET ${column}=?`).run(damaged);
-    await expect(service.exportAudit(input.companyId, input.quarter)).rejects.toThrow(
-      /authenticated/,
-    );
+    await expect(service.exportAudit(input.companyId, input.quarter)).rejects.toThrow(/authenticated/);
     await expect(service.createOrGet(input)).rejects.toThrow(/authenticated/);
     db.prepare(`UPDATE selection_runs SET ${column}=?`).run(row.value);
     db.close();
@@ -91,9 +89,12 @@ it("authenticates run identity against ciphertext copied from another company", 
     seed_nonce: Buffer;
     seed_tag: Buffer;
   };
-  db.prepare(
-    "UPDATE selection_runs SET seed_ciphertext=?,seed_nonce=?,seed_tag=? WHERE company_id=?",
-  ).run(source.seed_ciphertext, source.seed_nonce, source.seed_tag, "co-2");
+  db.prepare("UPDATE selection_runs SET seed_ciphertext=?,seed_nonce=?,seed_tag=? WHERE company_id=?").run(
+    source.seed_ciphertext,
+    source.seed_nonce,
+    source.seed_tag,
+    "co-2",
+  );
   db.close();
   await expect(service.exportAudit("co-2", input.quarter)).rejects.toThrow(/authenticated/);
   expect(await service.get("co-1", input.quarter)).toBeDefined();
@@ -118,9 +119,7 @@ it("exports detached evidence and reports an unknown run clearly", async () => {
   first.record.selected.length = 0;
   first.record.eligibleVehicleIds.length = 0;
   expect(await service.exportAudit(input.companyId, input.quarter)).toEqual(copy);
-  await expect(service.exportAudit("missing", input.quarter)).rejects.toThrow(
-    /no selection exists/,
-  );
+  await expect(service.exportAudit("missing", input.quarter)).rejects.toThrow(/no selection exists/);
 });
 it("does not mutate or retain the caller-owned key buffer", async () => {
   const { path } = setup(),
@@ -128,9 +127,7 @@ it("does not mutate or retain the caller-owned key buffer", async () => {
     service = open(path, callerKey);
   await service.createOrGet(input);
   callerKey.fill(0);
-  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(
-    true,
-  );
+  expect(verifyAuditBundle(await service.exportAudit(input.companyId, input.quarter)).ok).toBe(true);
   await service.close();
   expect(key).toEqual(Buffer.alloc(32, 7));
 });

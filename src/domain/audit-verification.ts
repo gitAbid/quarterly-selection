@@ -40,13 +40,11 @@ export function verifyAuditBundle(bundle: unknown): VerificationReport {
     );
     const checks: Record<CheckName, boolean> = {
       algorithmSupported: true,
-      commitmentMatchesSeed:
-        commitSeed(revealedSeed, record.algorithmVersion) === record.commitment,
+      commitmentMatchesSeed: commitSeed(revealedSeed, record.algorithmVersion) === record.commitment,
       snapshotHashMatches: snapshotHash(record.eligibleVehicleIds) === record.snapshotSha256,
       eligibleCountMatches: record.eligibleVehicleIds.length === record.eligibleCount,
       selectedCountFollowsRule:
-        computed.selectedCount === record.selectedCount &&
-        record.selected.length === record.selectedCount,
+        computed.selectedCount === record.selectedCount && record.selected.length === record.selectedCount,
       selectionReproduced: sameSelection(computed, record),
     };
     const errors = Object.entries(checks)
@@ -60,11 +58,7 @@ export function verifyAuditBundle(bundle: unknown): VerificationReport {
 }
 
 function parseBundle(bundle: unknown): ParsedBundle {
-  if (
-    !isRecord(bundle) ||
-    typeof bundle.revealedSeed !== "string" ||
-    typeof bundle.algorithm !== "string"
-  )
+  if (!isRecord(bundle) || typeof bundle.revealedSeed !== "string" || typeof bundle.algorithm !== "string")
     throw new SelectionInputError("audit bundle envelope is invalid");
   return {
     record: parseRunRecord(bundle.record),

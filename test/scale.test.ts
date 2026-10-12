@@ -7,10 +7,7 @@ it.each([20, 200_000])(
     const { path } = setup(),
       request = {
         ...input,
-        vehicleIds: Array.from(
-          { length: n },
-          (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
-        ),
+        vehicleIds: Array.from({ length: n }, (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`),
       };
     const service = open(path),
       first = await service.createOrGet(request);

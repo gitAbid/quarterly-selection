@@ -15,7 +15,6 @@ export function openAuditBundle(stored: StoredRun, cipher: SeedCipher): AuditBun
     revealedSeed: cipher.decrypt(stored.encrypted, stored.record),
     algorithm: algorithmFor(stored.record.algorithmVersion).description,
   };
-  if (!verifyAuditBundle(bundle).ok)
-    throw new SelectionStorageError("persisted selection evidence is inconsistent");
+  if (!verifyAuditBundle(bundle).ok) throw new SelectionStorageError("persisted selection evidence is inconsistent");
   return bundle;
 }

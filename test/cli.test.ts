@@ -28,26 +28,10 @@ it("draws, reopens, reads, exports and verifies from independent CLI processes",
   const second = run(["draw", "--db", path, "--input", file]);
   expect(second.status).toBe(0);
   expect(JSON.parse(second.stdout)).toEqual({ ...a, reused: true });
-  const lookup = run([
-    "get",
-    "--db",
-    path,
-    "--company",
-    input.companyId,
-    "--quarter",
-    input.quarter,
-  ]);
+  const lookup = run(["get", "--db", path, "--company", input.companyId, "--quarter", input.quarter]);
   expect(lookup.status).toBe(0);
   expect(JSON.parse(lookup.stdout)).toEqual(a.record);
-  const audit = run([
-    "audit",
-    "--db",
-    path,
-    "--company",
-    input.companyId,
-    "--quarter",
-    input.quarter,
-  ]);
+  const audit = run(["audit", "--db", path, "--company", input.companyId, "--quarter", input.quarter]);
   expect(audit.status).toBe(0);
   const bundlePath = join(dir, "audit.json");
   writeFileSync(bundlePath, audit.stdout);
@@ -133,9 +117,7 @@ it("fails unknown audit runs, wrong export keys and invalid database paths witho
   const failed = run(["draw", "--db", join(dir, "missing", "draw.sqlite"), "--input", file]);
   expect(failed.status).toBe(1);
   expect(failed.stdout).toBe("");
-  expect(
-    run(["get", "--db", path, "--company", input.companyId, "--quarter", input.quarter]).status,
-  ).toBe(0);
+  expect(run(["get", "--db", path, "--company", input.companyId, "--quarter", input.quarter]).status).toBe(0);
 });
 it("rejects duplicate flags and returns JSON null for a valid missing lookup", () => {
   const { path } = setup();

@@ -18,6 +18,4 @@ for (let i = 0; i < runs; i++)
 const expected = (runs * 2) / 8;
 console.log(`${runs} draws, expected ${expected} picks per vehicle\n`);
 for (const [id, n] of counts)
-  console.log(
-    `${id}  ${String(n).padStart(7)}  ${(((n - expected) / expected) * 100).toFixed(2).padStart(6)}%`,
-  );
+  console.log(`${id}  ${String(n).padStart(7)}  ${(((n - expected) / expected) * 100).toFixed(2).padStart(6)}%`);

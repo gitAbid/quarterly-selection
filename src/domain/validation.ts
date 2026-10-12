@@ -33,27 +33,18 @@ export function compareCodeUnits(a: string, b: string): number {
 }
 
 export function parseIdentity(companyId: unknown, quarter: unknown): SelectionIdentity {
-  if (!isWellFormedText(companyId))
-    throw new SelectionInputError("companyId must be a nonblank, well-formed string");
+  if (!isWellFormedText(companyId)) throw new SelectionInputError("companyId must be a nonblank, well-formed string");
   if (typeof quarter !== "string" || !QUARTER.test(quarter) || quarter.startsWith("0000"))
-    throw new SelectionInputError(
-      "quarter must be YYYY-Q1 through YYYY-Q4, year 0001 through 9999",
-    );
+    throw new SelectionInputError("quarter must be YYYY-Q1 through YYYY-Q4, year 0001 through 9999");
   return { companyId, quarter };
 }
 
 /** Converts a percentage with at most two decimals into integer basis points. */
 export function toBasisPoints(value: unknown): number {
-  if (
-    typeof value !== "number" ||
-    !Number.isFinite(value) ||
-    value < MIN_PERCENTAGE ||
-    value > MAX_PERCENTAGE
-  )
+  if (typeof value !== "number" || !Number.isFinite(value) || value < MIN_PERCENTAGE || value > MAX_PERCENTAGE)
     throw new SelectionInputError("percentage must be a finite number from 0.01 through 100");
   const basisPoints = Math.round(value * 100);
-  if (value !== basisPoints / 100)
-    throw new SelectionInputError("percentage supports at most two decimal places");
+  if (value !== basisPoints / 100) throw new SelectionInputError("percentage supports at most two decimal places");
   return basisPoints;
 }
 
@@ -63,8 +54,7 @@ export function canonicalVehicleIds(value: unknown): string[] {
     throw new SelectionInputError("vehicleIds must be an array of nonblank, well-formed strings");
   const ids = [...value].sort(compareCodeUnits);
   for (let i = 1; i < ids.length; i++)
-    if (ids[i] === ids[i - 1])
-      throw new SelectionInputError("vehicleIds must not contain duplicates");
+    if (ids[i] === ids[i - 1]) throw new SelectionInputError("vehicleIds must not contain duplicates");
   return ids;
 }
 

@@ -36,22 +36,15 @@ describe("selection and replay boundary", () => {
     });
   });
   it("commits to the fixture seed with the independently calculated hash", () => {
-    expect(commitSeed(seed, "v2")).toBe(
-      "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
-    );
+    expect(commitSeed(seed, "v2")).toBe("630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd");
   });
 });
 it("rejects zero percent rather than issuing an empty positive-policy draw", () => {
   expect(() => replaySelection({ ...fixture, percentage: 0 }, seed)).toThrow(SelectionInputError);
 });
-it.each([0, -1, 100.01, NaN, Infinity, 0.001, 1e-12, 12.345, "25"])(
-  "rejects unsupported percentage %s",
-  (value) => {
-    expect(() => replaySelection({ ...fixture, percentage: value as number }, seed)).toThrow(
-      SelectionInputError,
-    );
-  },
-);
+it.each([0, -1, 100.01, NaN, Infinity, 0.001, 1e-12, 12.345, "25"])("rejects unsupported percentage %s", (value) => {
+  expect(() => replaySelection({ ...fixture, percentage: value as number }, seed)).toThrow(SelectionInputError);
+});
 it.each([
   [20, 25, 5],
   [7, 25, 2],
@@ -62,9 +55,7 @@ it.each([
   [10_000, 0.07, 7],
   [200_000, 12.5, 25_000],
 ])("selects %i vehicles at %s percent with count %i", (n, p, count) => {
-  expect(
-    replaySelection({ ...fixture, vehicleIds: ids(n), percentage: p }, seed).selectedCount,
-  ).toBe(count);
+  expect(replaySelection({ ...fixture, vehicleIds: ids(n), percentage: p }, seed).selectedCount).toBe(count);
 });
 it.each([
   null,
@@ -103,15 +94,11 @@ it("preserves valid Unicode, delimiters, case and caller-owned array order", () 
   const a = replaySelection({ ...fixture, vehicleIds: population, percentage: 100 }, seed);
   expect(new Set(a.selected.map((s) => s.vehicleId))).toEqual(new Set(population));
   expect(population).toEqual(before);
-  expect(
-    replaySelection({ ...fixture, vehicleIds: [...population].reverse(), percentage: 100 }, seed),
-  ).toEqual(a);
+  expect(replaySelection({ ...fixture, vehicleIds: [...population].reverse(), percentage: 100 }, seed)).toEqual(a);
 });
 it("does not exclude a previous-quarter selection", () => {
   const prior = replaySelection({ ...fixture, quarter: "2026-Q3" }, seed);
-  const current = new Set(
-    replaySelection({ ...fixture, percentage: 100 }, seed).selected.map((s) => s.vehicleId),
-  );
+  const current = new Set(replaySelection({ ...fixture, percentage: 100 }, seed).selected.map((s) => s.vehicleId));
   expect(prior.selected.every((s) => current.has(s.vehicleId))).toBe(true);
 });
 it("gives no gross advantage across 4000 fixed independent seeds", () => {
@@ -122,8 +109,7 @@ it("gives no gross advantage across 4000 fixed independent seeds", () => {
     const r = replaySelection({ ...fixture, vehicleIds: population, percentage: 25 }, trial);
     for (const v of r.selected) counts.set(v.vehicleId, counts.get(v.vehicleId)! + 1);
   }
-  for (const count of counts.values())
-    expect(Math.abs(count - 1000)).toBeLessThan(5 * Math.sqrt(4000 * 0.25 * 0.75));
+  for (const count of counts.values()) expect(Math.abs(count - 1000)).toBeLessThan(5 * Math.sqrt(4000 * 0.25 * 0.75));
 });
 it.each(["0001-Q1", "9999-Q4", "2026-Q1", "2026-Q2", "2026-Q3", "2026-Q4"])(
   "accepts calendar quarter %s",
@@ -135,12 +121,10 @@ it.each(["2026Q4", "26-Q4", "2026-q4", ""])("rejects malformed calendar quarter 
   expect(() => replaySelection({ ...fixture, quarter }, seed)).toThrow(SelectionInputError);
 });
 it("rejects sparse populations instead of selecting undefined vehicles", () => {
-  expect(() =>
-    replaySelection({ ...fixture, vehicleIds: new Array(1), percentage: 100 }, seed),
-  ).toThrow(SelectionInputError);
-});
-it("rejects extra decimal digits even when close to a hundredth", () => {
-  expect(() => replaySelection({ ...fixture, percentage: 12.340000000001 }, seed)).toThrow(
+  expect(() => replaySelection({ ...fixture, vehicleIds: new Array(1), percentage: 100 }, seed)).toThrow(
     SelectionInputError,
   );
+});
+it("rejects extra decimal digits even when close to a hundredth", () => {
+  expect(() => replaySelection({ ...fixture, percentage: 12.340000000001 }, seed)).toThrow(SelectionInputError);
 });

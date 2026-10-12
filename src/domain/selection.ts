@@ -1,13 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { algorithmFor, CURRENT_ALGORITHM } from "./algorithms/registry";
 import type { ScoringAlgorithm } from "./algorithms/scoring-algorithm";
-import type {
-  AlgorithmVersion,
-  DrawInput,
-  SelectedVehicle,
-  SelectionResult,
-  ValidatedDrawInput,
-} from "./model";
+import type { AlgorithmVersion, DrawInput, SelectedVehicle, SelectionResult, ValidatedDrawInput } from "./model";
 import { compareCodeUnits, validateDrawInput } from "./validation";
 
 type ScoredVehicle = Omit<SelectedVehicle, "rank">;
@@ -53,11 +47,7 @@ export function commitSeed(seed: string, version: AlgorithmVersion): string {
   return createHash("sha256").update(algorithmFor(version).hmacKey(seed)).digest("hex");
 }
 
-function rankVehicles(
-  algorithm: ScoringAlgorithm,
-  key: Buffer,
-  input: ValidatedDrawInput,
-): ScoredVehicle[] {
+function rankVehicles(algorithm: ScoringAlgorithm, key: Buffer, input: ValidatedDrawInput): ScoredVehicle[] {
   return input.vehicleIds
     .map((vehicleId) => ({
       vehicleId,
@@ -65,7 +55,5 @@ function rankVehicles(
         .update(algorithm.message(input.companyId, input.quarter, vehicleId), "utf8")
         .digest("hex"),
     }))
-    .sort(
-      (a, b) => compareCodeUnits(a.score, b.score) || compareCodeUnits(a.vehicleId, b.vehicleId),
-    );
+    .sort((a, b) => compareCodeUnits(a.score, b.score) || compareCodeUnits(a.vehicleId, b.vehicleId));
 }

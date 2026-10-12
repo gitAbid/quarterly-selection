@@ -21,5 +21,4 @@ appendFileSync(
   }) + "\n",
 );
 process.stdout.write(log);
-if ((phase === "red" && r.status === 0) || (phase !== "red" && r.status !== 0) || r.error)
-  process.exit(1);
+if ((phase === "red" && r.status === 0) || (phase !== "red" && r.status !== 0) || r.error) process.exit(1);

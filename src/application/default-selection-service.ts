@@ -1,16 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { CURRENT_ALGORITHM } from "../domain/algorithms/registry";
-import {
-  SelectionInputError,
-  SelectionNotFoundError,
-  SelectionStorageError,
-} from "../domain/errors";
-import type {
-  AuditBundle,
-  DrawInput,
-  SelectionRunRecord,
-  ValidatedDrawInput,
-} from "../domain/model";
+import { SelectionInputError, SelectionNotFoundError, SelectionStorageError } from "../domain/errors";
+import type { AuditBundle, DrawInput, SelectionRunRecord, ValidatedDrawInput } from "../domain/model";
 import { commitSeed, replaySelection, snapshotHash } from "../domain/selection";
 import { parseIdentity, validateDrawInput } from "../domain/validation";
 import { openAuditBundle } from "./audit-bundle";
@@ -64,8 +55,7 @@ export class DefaultSelectionService implements SelectionService {
   async exportAudit(companyId: string, quarter: string): Promise<AuditBundle> {
     this.ensureOpen();
     const stored = this.store.find(parseIdentity(companyId, quarter));
-    if (!stored)
-      throw new SelectionNotFoundError("no selection exists for this company and quarter");
+    if (!stored) throw new SelectionNotFoundError("no selection exists for this company and quarter");
     return openAuditBundle(stored, this.cipher);
   }
 
@@ -109,8 +99,7 @@ export class DefaultSelectionService implements SelectionService {
       record,
       reused,
       inputsMatch:
-        record.snapshotSha256 === snapshotHash(request.vehicleIds) &&
-        record.percentageBp === request.percentageBp,
+        record.snapshotSha256 === snapshotHash(request.vehicleIds) && record.percentageBp === request.percentageBp,
     };
   }
 }

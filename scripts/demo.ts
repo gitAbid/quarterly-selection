@@ -27,11 +27,7 @@ try {
       2,
     ),
   );
-  if (
-    !second.reused ||
-    !report.ok ||
-    JSON.stringify(first.record) !== JSON.stringify(second.record)
-  )
+  if (!second.reused || !report.ok || JSON.stringify(first.record) !== JSON.stringify(second.record))
     process.exitCode = 1;
 } finally {
   await service.close();

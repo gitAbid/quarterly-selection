@@ -15,17 +15,11 @@ interface WorkerMessages {
 const children: ChildProcess[] = [];
 
 /** IPC data is untyped; the worker fixture is trusted to send the shapes above. */
-function isMessage<K extends keyof WorkerMessages>(
-  value: unknown,
-  kind: K,
-): value is WorkerMessages[K] {
+function isMessage<K extends keyof WorkerMessages>(value: unknown, kind: K): value is WorkerMessages[K] {
   return typeof value === "object" && value !== null && "kind" in value && value.kind === kind;
 }
 
-export function message<K extends keyof WorkerMessages>(
-  child: ChildProcess,
-  kind: K,
-): Promise<WorkerMessages[K]> {
+export function message<K extends keyof WorkerMessages>(child: ChildProcess, kind: K): Promise<WorkerMessages[K]> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       cleanup();
@@ -51,16 +45,12 @@ export function message<K extends keyof WorkerMessages>(
   });
 }
 export async function start(mode: string, path: string, duration = 0) {
-  const child = fork(
-    fileURLToPath(new URL("./fixtures/worker.ts", import.meta.url)),
-    [mode, path, String(duration)],
-    {
-      execPath: process.execPath,
-      execArgv: ["--import", "tsx"],
-      env: { ...process.env, FLEETCHECK_SEED_KEY: key.toString("base64") },
-      stdio: ["ignore", "ignore", "pipe", "ipc"],
-    },
-  );
+  const child = fork(fileURLToPath(new URL("./fixtures/worker.ts", import.meta.url)), [mode, path, String(duration)], {
+    execPath: process.execPath,
+    execArgv: ["--import", "tsx"],
+    env: { ...process.env, FLEETCHECK_SEED_KEY: key.toString("base64") },
+    stdio: ["ignore", "ignore", "pipe", "ipc"],
+  });
   children.push(child);
   let stderr = "";
   child.stderr?.on("data", (b) => {

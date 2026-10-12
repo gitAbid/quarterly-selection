@@ -12,25 +12,19 @@ const IDENTITY_FLAGS = ["--db", "--company", "--quarter"] as const;
 const draw: Command = async (args, env) => {
   const flag = parseFlags(args, ["--db", "--input"]);
   const request = validateDrawInput(readJsonFile(flag("--input")));
-  return withService(flag("--db"), env, async (service) =>
-    succeed(await service.createOrGet(request)),
-  );
+  return withService(flag("--db"), env, async (service) => succeed(await service.createOrGet(request)));
 };
 
 const get: Command = async (args, env) => {
   const flag = parseFlags(args, IDENTITY_FLAGS);
   const { companyId, quarter } = parseIdentity(flag("--company"), flag("--quarter"));
-  return withService(flag("--db"), env, async (service) =>
-    succeed((await service.get(companyId, quarter)) ?? null),
-  );
+  return withService(flag("--db"), env, async (service) => succeed((await service.get(companyId, quarter)) ?? null));
 };
 
 const audit: Command = async (args, env) => {
   const flag = parseFlags(args, IDENTITY_FLAGS);
   const { companyId, quarter } = parseIdentity(flag("--company"), flag("--quarter"));
-  return withService(flag("--db"), env, async (service) =>
-    succeed(await service.exportAudit(companyId, quarter)),
-  );
+  return withService(flag("--db"), env, async (service) => succeed(await service.exportAudit(companyId, quarter)));
 };
 
 const verify: Command = async (args) => {
@@ -48,10 +42,7 @@ const COMMANDS: ReadonlyMap<string, Command> = new Map([
   ["verify", verify],
 ]);
 
-export async function runCli(
-  argv: readonly string[],
-  env: NodeJS.ProcessEnv,
-): Promise<CommandResult> {
+export async function runCli(argv: readonly string[], env: NodeJS.ProcessEnv): Promise<CommandResult> {
   const [name, ...args] = argv;
   const command = name === undefined ? undefined : COMMANDS.get(name);
   if (!command) throw new UsageError(USAGE);

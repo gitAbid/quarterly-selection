@@ -6,10 +6,7 @@ export { verifyAuditBundle } from "./domain/audit-verification";
 
 // Application: use cases and the ports adapters implement.
 export type { RunOutcome, SelectionService } from "./application/selection-service";
-export {
-  DefaultSelectionService,
-  type SelectionServiceDependencies,
-} from "./application/default-selection-service";
+export { DefaultSelectionService, type SelectionServiceDependencies } from "./application/default-selection-service";
 export type {
   EncryptedSeed,
   InsertResult,

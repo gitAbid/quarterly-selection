@@ -16,8 +16,7 @@ const MAX_BASIS_POINTS = 10_000;
 export function parseRunRecord(value: unknown): SelectionRunRecord {
   if (!isRecord(value)) throw new SelectionInputError("audit record must be an object");
   const { algorithmVersion, percentageBp } = value;
-  if (!isAlgorithmVersion(algorithmVersion))
-    throw new SelectionInputError("unsupported algorithm version");
+  if (!isAlgorithmVersion(algorithmVersion)) throw new SelectionInputError("unsupported algorithm version");
   if (
     typeof percentageBp !== "number" ||
     !Number.isSafeInteger(percentageBp) ||
@@ -32,10 +31,8 @@ export function parseRunRecord(value: unknown): SelectionRunRecord {
     vehicleIds: value.eligibleVehicleIds,
   });
   const { eligibleCount, selectedCount, snapshotSha256, commitment } = value;
-  if (!isCount(eligibleCount) || !isCount(selectedCount))
-    throw new SelectionInputError("invalid recorded counts");
-  if (!isSha256Hex(snapshotSha256) || !isSha256Hex(commitment))
-    throw new SelectionInputError("invalid recorded hash");
+  if (!isCount(eligibleCount) || !isCount(selectedCount)) throw new SelectionInputError("invalid recorded counts");
+  if (!isSha256Hex(snapshotSha256) || !isSha256Hex(commitment)) throw new SelectionInputError("invalid recorded hash");
   const createdAt = parseTimestamp(value.createdAt);
   const selected = parseSelected(value.selected);
   return {
@@ -54,11 +51,7 @@ export function parseRunRecord(value: unknown): SelectionRunRecord {
 }
 
 function parseTimestamp(value: unknown): string {
-  if (
-    typeof value !== "string" ||
-    !Number.isFinite(Date.parse(value)) ||
-    new Date(value).toISOString() !== value
-  )
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value)
     throw new SelectionInputError("invalid creation timestamp");
   return value;
 }

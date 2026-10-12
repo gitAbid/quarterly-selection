@@ -51,8 +51,7 @@ export class SqliteSelectionStore implements SelectionStore {
         throw new Error("a durable file path is required");
       db = new Database(path, { timeout: BUSY_TIMEOUT_MS });
       const version: unknown = db.pragma("user_version", { simple: true });
-      if (version !== 0 && version !== SCHEMA_VERSION)
-        throw new Error("unsupported schema version");
+      if (version !== 0 && version !== SCHEMA_VERSION) throw new Error("unsupported schema version");
       chmodSync(path, 0o600);
       db.pragma("journal_mode = WAL");
       db.pragma("synchronous = FULL");
@@ -123,11 +122,7 @@ function decodeRow(row: unknown): StoredRun {
   try {
     if (!isSelectionRow(row)) throw new Error("malformed row");
     const record = parseRunRecord(JSON.parse(row.public_record));
-    if (
-      record.companyId !== row.company_id ||
-      record.quarter !== row.quarter ||
-      record.algorithmVersion !== "v2"
-    )
+    if (record.companyId !== row.company_id || record.quarter !== row.quarter || record.algorithmVersion !== "v2")
       throw new Error("record does not match its row");
     return {
       record,
@@ -145,13 +140,10 @@ function decodeRow(row: unknown): StoredRun {
 /** Hides raw SQLite messages; marks lock contention as safe to retry. */
 function toStorageError(error: unknown): SelectionStorageError {
   if (error instanceof SelectionStorageError) return error;
-  const code =
-    typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
   const retryable = code.startsWith("SQLITE_BUSY") || code.startsWith("SQLITE_LOCKED");
   return new SelectionStorageError(
-    retryable
-      ? "selection storage is busy; retry the request"
-      : "selection storage operation failed",
+    retryable ? "selection storage is busy; retry the request" : "selection storage operation failed",
     retryable,
     { cause: error },
   );
