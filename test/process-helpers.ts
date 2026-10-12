@@ -19,7 +19,12 @@ function isMessage<K extends keyof WorkerMessages>(
   value: unknown,
   kind: K,
 ): value is WorkerMessages[K] {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === kind;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "kind" in value &&
+    value.kind === kind
+  );
 }
 
 export function message<K extends keyof WorkerMessages>(

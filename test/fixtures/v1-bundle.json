@@ -20,12 +20,7 @@
       }
     ],
     "commitment": "fdcbc807d80f60c6f15ef644d5c372ac92760bd5f414cc3d48c3b320d9d1e689",
-    "eligibleVehicleIds": [
-      "veh-a",
-      "veh-b",
-      "veh-c",
-      "veh-d"
-    ],
+    "eligibleVehicleIds": ["veh-a", "veh-b", "veh-c", "veh-d"],
     "createdAt": "2026-10-01T00:00:00.000Z"
   },
   "revealedSeed": "legacy-secret",

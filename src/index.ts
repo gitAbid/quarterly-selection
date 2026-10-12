@@ -5,7 +5,10 @@ export { replaySelection } from "./domain/selection";
 export { verifyAuditBundle } from "./domain/audit-verification";
 
 // Application: use cases and the ports adapters implement.
-export type { RunOutcome, SelectionService } from "./application/selection-service";
+export type {
+  RunOutcome,
+  SelectionService,
+} from "./application/selection-service";
 export {
   DefaultSelectionService,
   type SelectionServiceDependencies,

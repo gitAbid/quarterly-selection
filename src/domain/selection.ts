@@ -46,7 +46,10 @@ export function replaySelection(
 }
 
 /** ceil(eligible × basisPoints / 10,000), in exact integer arithmetic. */
-export function selectedCountFor(eligible: number, basisPoints: number): number {
+export function selectedCountFor(
+  eligible: number,
+  basisPoints: number,
+): number {
   return Math.floor(
     (eligible * basisPoints + BASIS_POINTS_PER_WHOLE - 1) /
       BASIS_POINTS_PER_WHOLE,
@@ -74,7 +77,10 @@ function rankVehicles(
     .map((vehicleId) => ({
       vehicleId,
       score: createHmac("sha256", key)
-        .update(algorithm.message(input.companyId, input.quarter, vehicleId), "utf8")
+        .update(
+          algorithm.message(input.companyId, input.quarter, vehicleId),
+          "utf8",
+        )
         .digest("hex"),
     }))
     .sort(

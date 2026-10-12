@@ -12,6 +12,7 @@ Requirements: **Node 22.12+, 24 or 26**, and npm. Nothing else; the database is 
 npm ci              # install (npm may warn about install scripts; this is harmless)
 npm test            # 131 tests, takes about 15 seconds
 npm run typecheck
+npm run format      # Prettier; use format:check to verify without changing files
 npm run demo        # draws 20 vehicles, restarts, retries, then verifies an audit export
 npm run benchmark   # times 20 and 200,000 vehicles
 npm run fairness    # 100,000 draws: shows every vehicle is picked equally often
@@ -21,14 +22,14 @@ The demo prints the selected IDs twice, before and after a restart (they are the
 
 ## How the brief maps to the code
 
-| Requirement from the brief | How it is met | Where |
-|---|---|---|
-| Input: active vehicles, percentage, quarter | Validated input object; the caller supplies the active vehicle IDs | `src/domain/validation.ts` |
-| Every eligible vehicle has an equal chance | A fresh random 32-byte seed gives every vehicle a random score (HMAC-SHA-256); the lowest scores win | `src/domain/selection.ts` |
-| An auditor can reproduce the result | Each draw stores its full input and its seed. `audit` exports them and `verify` recomputes the result | `src/domain/audit-verification.ts` |
-| Last quarter's picks are still eligible | Nothing is excluded; every quarter is an independent draw | — |
-| Running twice gives no second selection | One database row per (company, quarter). A retry returns the stored draw and never draws again | `src/application/default-selection-service.ts`, `src/infrastructure/persistence/sqlite-selection-store.ts` |
-| Works for 20 and 200,000 vehicles | Both are tested; 200,000 takes about 1–4 s on a laptop | `test/scale.test.ts` |
+| Requirement from the brief                  | How it is met                                                                                         | Where                                                                                                      |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Input: active vehicles, percentage, quarter | Validated input object; the caller supplies the active vehicle IDs                                    | `src/domain/validation.ts`                                                                                 |
+| Every eligible vehicle has an equal chance  | A fresh random 32-byte seed gives every vehicle a random score (HMAC-SHA-256); the lowest scores win  | `src/domain/selection.ts`                                                                                  |
+| An auditor can reproduce the result         | Each draw stores its full input and its seed. `audit` exports them and `verify` recomputes the result | `src/domain/audit-verification.ts`                                                                         |
+| Last quarter's picks are still eligible     | Nothing is excluded; every quarter is an independent draw                                             | —                                                                                                          |
+| Running twice gives no second selection     | One database row per (company, quarter). A retry returns the stored draw and never draws again        | `src/application/default-selection-service.ts`, `src/infrastructure/persistence/sqlite-selection-store.ts` |
+| Works for 20 and 200,000 vehicles           | Both are tested; 200,000 takes about 1–4 s on a laptop                                                | `test/scale.test.ts`                                                                                       |
 
 ## How it works
 
@@ -51,16 +52,16 @@ flowchart LR
 
 With a demo seed (`00…01`), each vehicle gets these scores (first 8 hex characters shown):
 
-| Rank | Vehicle | Score | Selected? |
-|---:|---|---|---|
-| 1 | VAN-2 | `0272759b…` | ✅ |
-| 2 | VAN-7 | `0cd9ae75…` | ✅ |
-| 3 | VAN-3 | `301990b4…` | |
-| 4 | VAN-5 | `679a6a33…` | |
-| 5 | VAN-6 | `945a22ad…` | |
-| 6 | VAN-1 | `b617e4ef…` | |
-| 7 | VAN-4 | `b8a74016…` | |
-| 8 | VAN-8 | `bc00ccda…` | |
+| Rank | Vehicle | Score       | Selected? |
+| ---: | ------- | ----------- | --------- |
+|    1 | VAN-2   | `0272759b…` | ✅        |
+|    2 | VAN-7   | `0cd9ae75…` | ✅        |
+|    3 | VAN-3   | `301990b4…` |           |
+|    4 | VAN-5   | `679a6a33…` |           |
+|    5 | VAN-6   | `945a22ad…` |           |
+|    6 | VAN-1   | `b617e4ef…` |           |
+|    7 | VAN-4   | `b8a74016…` |           |
+|    8 | VAN-8   | `bc00ccda…` |           |
 
 A different seed gives completely different scores, and so a different pair. The same seed always gives the same scores, which is what lets an auditor replay the draw.
 
@@ -73,8 +74,8 @@ A different seed gives completely different scores, and so a different pair. The
 
 You can check this yourself. `npm run fairness` runs 100,000 independent draws of these 8 vehicles and counts how often each was picked. The expected count is 25,000 each:
 
-| Vehicle | VAN-1 | VAN-2 | VAN-3 | VAN-4 | VAN-5 | VAN-6 | VAN-7 | VAN-8 |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Vehicle      |  VAN-1 |  VAN-2 |  VAN-3 |  VAN-4 |  VAN-5 |  VAN-6 |  VAN-7 |  VAN-8 |
+| ------------ | -----: | -----: | -----: | -----: | -----: | -----: | -----: | -----: |
 | Times picked | 25,001 | 24,964 | 24,976 | 24,778 | 24,992 | 25,228 | 25,140 | 24,921 |
 
 Every vehicle is within 1% of 25,000, which is ordinary random variation at this sample size. Your numbers will differ slightly each run.
@@ -103,14 +104,19 @@ Exit codes: `0` success, `1` failure (invalid data, wrong key, draw not found), 
 ### Library
 
 ```typescript
-import { openSelectionService, verifyAuditBundle } from './src/index';
+import { openSelectionService, verifyAuditBundle } from "./src/index";
 
-const service = openSelectionService({ databasePath: './draws.sqlite', encryptionKey: key });
-const { record, reused, inputsMatch } = await service.createOrGet({
-  companyId: 'co-1', quarter: '2026-Q4', percentage: 25,
-  vehicleIds: ['v-1', 'v-2', 'v-3', 'v-4'],
+const service = openSelectionService({
+  databasePath: "./draws.sqlite",
+  encryptionKey: key,
 });
-const report = verifyAuditBundle(await service.exportAudit('co-1', '2026-Q4'));
+const { record, reused, inputsMatch } = await service.createOrGet({
+  companyId: "co-1",
+  quarter: "2026-Q4",
+  percentage: 25,
+  vehicleIds: ["v-1", "v-2", "v-3", "v-4"],
+});
+const report = verifyAuditBundle(await service.exportAudit("co-1", "2026-Q4"));
 await service.close();
 ```
 
@@ -123,7 +129,7 @@ await service.close();
 
 ## Complexity
 
-With *n* vehicles and *k* selected:
+With _n_ vehicles and _k_ selected:
 
 - **Time: O(n log n)**, from one HMAC per vehicle followed by a sort. Retries and verification replay the draw, so they cost the same.
 - **Space: O(n)**, because the full list of eligible vehicles is stored with each draw so an auditor can replay it.
@@ -131,11 +137,11 @@ With *n* vehicles and *k* selected:
 Measured on an Apple M1 Pro, one run each (full logs in [evidence/VERIFICATION.md](evidence/VERIFICATION.md)):
 
 | Node | Vehicles | Create | Retry after restart | Verify audit | Peak memory |
-|---|---:|---:|---:|---:|---:|
-| 22 | 20 | 3 ms | 2 ms | 0.2 ms | 82 MiB |
-| 22 | 200,000 | 1.2 s | 0.6 s | 0.5 s | 369 MiB |
-| 24 | 20 | 3 ms | 1 ms | 0.2 ms | 82 MiB |
-| 24 | 200,000 | 4.2 s | 1.9 s | 2.0 s | 485 MiB |
+| ---- | -------: | -----: | ------------------: | -----------: | ----------: |
+| 22   |       20 |   3 ms |                2 ms |       0.2 ms |      82 MiB |
+| 22   |  200,000 |  1.2 s |               0.6 s |        0.5 s |     369 MiB |
+| 24   |       20 |   3 ms |                1 ms |       0.2 ms |      82 MiB |
+| 24   |  200,000 |  4.2 s |               1.9 s |        2.0 s |     485 MiB |
 
 Peak memory is the whole Node process, including SQLite and the test data, not just the algorithm.
 

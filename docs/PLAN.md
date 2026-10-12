@@ -26,14 +26,14 @@ Carry forward the agreed decisions:
 
 ### Required behavior
 
-| Requirement | Observable acceptance |
-|---|---|
-| Input is company, active vehicles, percentage and quarter | The normal draw API accepts these values without requiring a caller-selected seed. |
-| Eligible vehicles receive equal treatment | Every valid ID uses the same scoring construction. Input order and prior selection history provide no advantage. |
-| Auditor can reproduce the result | Exported evidence contains frozen inputs, algorithm version and retained random material; replay reproduces the recorded result. |
-| Last-quarter selections remain eligible | No history-based exclusion is applied. |
-| Same company/quarter cannot produce another selection | Retries, changed inputs, restarts and concurrent processes preserve the first committed draw. |
-| Works at both required scales | Creation, persistence, reopening, export and verification succeed at 20 and 200,000 vehicles. |
+| Requirement                                               | Observable acceptance                                                                                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Input is company, active vehicles, percentage and quarter | The normal draw API accepts these values without requiring a caller-selected seed.                                               |
+| Eligible vehicles receive equal treatment                 | Every valid ID uses the same scoring construction. Input order and prior selection history provide no advantage.                 |
+| Auditor can reproduce the result                          | Exported evidence contains frozen inputs, algorithm version and retained random material; replay reproduces the recorded result. |
+| Last-quarter selections remain eligible                   | No history-based exclusion is applied.                                                                                           |
+| Same company/quarter cannot produce another selection     | Retries, changed inputs, restarts and concurrent processes preserve the first committed draw.                                    |
+| Works at both required scales                             | Creation, persistence, reopening, export and verification succeed at 20 and 200,000 vehicles.                                    |
 
 ### Assumptions made explicit
 
@@ -47,12 +47,12 @@ Carry forward the agreed decisions:
 
 ### Algorithm alternatives
 
-| Algorithm | Advantages | Trade-offs |
-|---|---|---|
-| **HMAC ranking—chosen** | Simple per-vehicle evidence; reproducible without depending on supplied input order; straightforward to inspect. | Sorting costs O(n log n); retained ID tie-break has negligible theoretical bias on finite-score collisions. |
-| Seeded partial Fisher–Yates | Clear idealized uniform-sampling argument; O(k) sampling after population preparation. | Requires a specified cryptographic stream and unbiased range conversion. Canonical preparation can still require sorting. |
-| Reservoir sampling | Suitable for streaming populations; O(n) traversal and O(k) sampling memory. | Replay depends on stream order; full audit evidence still needs retained population storage. |
-| Public deterministic hash | Easy replay without secret random material. | Predictable and potentially steerable; unsuitable for surprise selection. |
+| Algorithm                   | Advantages                                                                                                       | Trade-offs                                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **HMAC ranking—chosen**     | Simple per-vehicle evidence; reproducible without depending on supplied input order; straightforward to inspect. | Sorting costs O(n log n); retained ID tie-break has negligible theoretical bias on finite-score collisions.               |
+| Seeded partial Fisher–Yates | Clear idealized uniform-sampling argument; O(k) sampling after population preparation.                           | Requires a specified cryptographic stream and unbiased range conversion. Canonical preparation can still require sorting. |
+| Reservoir sampling          | Suitable for streaming populations; O(n) traversal and O(k) sampling memory.                                     | Replay depends on stream order; full audit evidence still needs retained population storage.                              |
+| Public deterministic hash   | Easy replay without secret random material.                                                                      | Predictable and potentially steerable; unsuitable for surprise selection.                                                 |
 
 Choose HMAC ranking for its concise replay contract and suitability at the required scale. Document the pseudorandom-score assumption and tie limitation. Distribution tests detect gross mistakes; they do not prove fairness or honest seed selection.
 
@@ -84,10 +84,11 @@ interface RunOutcome {
 
 interface SelectionService {
   createOrGet(input: DrawInput): Promise<RunOutcome>;
-  get(companyId: string, quarter: string):
-    Promise<SelectionRunRecord | undefined>;
-  exportAudit(companyId: string, quarter: string):
-    Promise<AuditBundle>;
+  get(
+    companyId: string,
+    quarter: string,
+  ): Promise<SelectionRunRecord | undefined>;
+  exportAudit(companyId: string, quarter: string): Promise<AuditBundle>;
   close(): Promise<void>;
 }
 ```
@@ -159,25 +160,25 @@ Retain explicit v1 replay support for reference fixtures, but create only v2 dra
 
 Every feature needs both success and failure coverage. Failure tests assert the error, preserved state, absence of false success and absence of secret leakage.
 
-| Area | Success scenarios | Failure and recovery scenarios |
-|---|---|---|
-| Inputs | Valid company, population, percentage and quarter. | Missing/wrong types, non-array population, blank/duplicate IDs, malformed Unicode and caller-supplied orchestration seed rejected. |
-| Percentages | Accept 0.01, 0.07, 12.5, 25 and 100. | Reject zero, negatives, above 100, nonfinite values, 0.001, `1e-12` and 12.345. |
-| Counts | 20 at 25% → 5; 7 at 25% → 2; 20 at 1% → 1; one at 0.01% → one; empty → zero; 100% → all. | Empty populations cannot bypass validation; inconsistent or duplicate selected members fail verification. |
-| Encoding | Unicode, quotes and delimiters remain distinct; caller arrays remain unchanged. | Lone surrogates rejected; input or returned-object mutation cannot alter frozen evidence. |
-| Replay | Identical explicit inputs reproduce exactly; reversing/shuffling IDs changes nothing. | Altered evidence and unsupported versions fail. |
-| Previous selection | A fixed previous-quarter pick remains eligible; subsequent 100% draw includes it. | No historical exclusion reduces the supplied population. |
-| Distribution | Twenty vehicles at 25% over 4,000 fixed seeds; counts within five binomial standard deviations of 1,000. | Gross bias fails; passing is not presented as proof. |
-| Creation/retry | One creation; identical retry returns original with matching inputs. | Changed valid inputs return original with mismatch; invalid retry rejected without mutation. |
-| Restart | Close/reopen and another process retrieve the original. | Storage failure does not trigger an in-memory fallback or replacement draw. |
-| Concurrency | Ten independent processes yield one creator and the same committed record. | Conflicting candidates cannot overwrite the winner or return discarded selections. |
-| Interruption | Commit survives process termination. | Reopening finds no draw or one complete draw, never partial evidence; retry is safe. |
-| Contention | Success when contention clears within five seconds. | Timeout returns retryable failure with unchanged existing data. |
-| Seed/export | Correct key exports retained seed after restart. | Wrong/malformed key, modified ciphertext or moved encrypted seed fails; never regenerate. |
-| At-rest security | Plaintext seed/key absent from persisted artifacts and ordinary output. | Plaintext persistence or secret-bearing errors fail acceptance. |
-| Audit envelope | Valid evidence returns structured success. | Null, primitives, malformed fields and tampered identity/policy/selection return structured failure without crashing. |
-| CLI | Draw, reopen, export and verification work from documented commands. | Valid verification exits 0; invalid evidence/operational errors exit 1; usage/unreadable files/invalid JSON syntax exit 2. |
-| Scale | Complete lifecycle at 20 and 200,000; larger 25% draw selects 50,000 unique IDs. | Large-population restart, changed-input retry and tampering retain the same protections. |
+| Area               | Success scenarios                                                                                        | Failure and recovery scenarios                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Inputs             | Valid company, population, percentage and quarter.                                                       | Missing/wrong types, non-array population, blank/duplicate IDs, malformed Unicode and caller-supplied orchestration seed rejected. |
+| Percentages        | Accept 0.01, 0.07, 12.5, 25 and 100.                                                                     | Reject zero, negatives, above 100, nonfinite values, 0.001, `1e-12` and 12.345.                                                    |
+| Counts             | 20 at 25% → 5; 7 at 25% → 2; 20 at 1% → 1; one at 0.01% → one; empty → zero; 100% → all.                 | Empty populations cannot bypass validation; inconsistent or duplicate selected members fail verification.                          |
+| Encoding           | Unicode, quotes and delimiters remain distinct; caller arrays remain unchanged.                          | Lone surrogates rejected; input or returned-object mutation cannot alter frozen evidence.                                          |
+| Replay             | Identical explicit inputs reproduce exactly; reversing/shuffling IDs changes nothing.                    | Altered evidence and unsupported versions fail.                                                                                    |
+| Previous selection | A fixed previous-quarter pick remains eligible; subsequent 100% draw includes it.                        | No historical exclusion reduces the supplied population.                                                                           |
+| Distribution       | Twenty vehicles at 25% over 4,000 fixed seeds; counts within five binomial standard deviations of 1,000. | Gross bias fails; passing is not presented as proof.                                                                               |
+| Creation/retry     | One creation; identical retry returns original with matching inputs.                                     | Changed valid inputs return original with mismatch; invalid retry rejected without mutation.                                       |
+| Restart            | Close/reopen and another process retrieve the original.                                                  | Storage failure does not trigger an in-memory fallback or replacement draw.                                                        |
+| Concurrency        | Ten independent processes yield one creator and the same committed record.                               | Conflicting candidates cannot overwrite the winner or return discarded selections.                                                 |
+| Interruption       | Commit survives process termination.                                                                     | Reopening finds no draw or one complete draw, never partial evidence; retry is safe.                                               |
+| Contention         | Success when contention clears within five seconds.                                                      | Timeout returns retryable failure with unchanged existing data.                                                                    |
+| Seed/export        | Correct key exports retained seed after restart.                                                         | Wrong/malformed key, modified ciphertext or moved encrypted seed fails; never regenerate.                                          |
+| At-rest security   | Plaintext seed/key absent from persisted artifacts and ordinary output.                                  | Plaintext persistence or secret-bearing errors fail acceptance.                                                                    |
+| Audit envelope     | Valid evidence returns structured success.                                                               | Null, primitives, malformed fields and tampered identity/policy/selection return structured failure without crashing.              |
+| CLI                | Draw, reopen, export and verification work from documented commands.                                     | Valid verification exits 0; invalid evidence/operational errors exit 1; usage/unreadable files/invalid JSON syntax exit 2.         |
+| Scale              | Complete lifecycle at 20 and 200,000; larger 25% draw selects 50,000 unique IDs.                         | Large-population restart, changed-input retry and tampering retain the same protections.                                           |
 
 Different seeds or run identities may legitimately produce overlapping selections. Do not require every change to produce different selected IDs.
 
@@ -283,26 +284,26 @@ The deliverable is complete only when working code, success/failure/recovery tes
 
 This section was added after the build, checking each part of the plan above against the delivered code. Everything above it is the original plan, unchanged.
 
-| Plan item | Status | Where |
-|---|---|---|
-| Accept company, active IDs, percentage, quarter; no caller seed | ✅ Done | `src/domain/validation.ts` |
-| HMAC ranking, v2 encoding, code-unit ordering, score-then-ID ranking | ✅ Done | `src/domain/selection.ts` |
-| Ceiling count; 0.01–100%, two decimals; zero rejected | ✅ Done | `src/domain/validation.ts`, `test/selection.test.ts` |
-| SQLite: composite key, WAL, full sync, 5 s busy timeout, atomic insert | ✅ Done | `src/infrastructure/persistence/sqlite-selection-store.ts` |
-| AES-256-GCM seed, fresh 12-byte nonce, version/company/quarter bound as AAD | ✅ Done | `src/infrastructure/crypto/aes-gcm-seed-cipher.ts` |
-| Changed valid request returns original with `inputsMatch: false` | ✅ Done | `src/application/default-selection-service.ts`, `test/service.test.ts` |
-| v1 replay only; new draws v2; unknown versions rejected | ✅ Done | `src/domain/algorithms/` |
-| Independent fixture: ranks, scores, snapshot hash | ✅ Tested | `test/selection.test.ts` |
-| Independent fixture: commitment hash | ✅ Tested (assertion added during this cross-check) | `test/selection.test.ts` |
-| Distribution: 4,000 seeds from `distribution:<trial>`, within 5 standard deviations | ✅ Tested | `test/selection.test.ts` |
-| Previous-quarter pick stays eligible | ✅ Tested | `test/selection.test.ts` |
-| Ten independent processes, conflicting inputs, kill/restart, contention, rollback | ✅ Tested | `test/recovery.test.ts` |
-| Wrong key, tampered ciphertext, moved seed, no plaintext at rest | ✅ Tested | `test/seed.test.ts` |
-| Tampered and malformed audit bundles | ✅ Tested | `test/audit.test.ts` |
-| CLI `draw`/`get`/`audit`/`verify`, exit codes 0/1/2 | ✅ Tested | `test/cli.test.ts` |
-| 20 and 200,000 lifecycle; 50,000 unique at 25%; 10 s pure-selection guard | ✅ Tested | `test/scale.test.ts`, `scripts/benchmark.ts` |
-| README: commands, input and rounding rules, replay encoding, complexity, measurements, edge case, limits | ✅ Done | `README.md` |
-| Clean install and full verification on Node 22 and 24 | ✅ Done | `evidence/VERIFICATION.md` |
+| Plan item                                                                                                | Status                                              | Where                                                                  |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| Accept company, active IDs, percentage, quarter; no caller seed                                          | ✅ Done                                             | `src/domain/validation.ts`                                             |
+| HMAC ranking, v2 encoding, code-unit ordering, score-then-ID ranking                                     | ✅ Done                                             | `src/domain/selection.ts`                                              |
+| Ceiling count; 0.01–100%, two decimals; zero rejected                                                    | ✅ Done                                             | `src/domain/validation.ts`, `test/selection.test.ts`                   |
+| SQLite: composite key, WAL, full sync, 5 s busy timeout, atomic insert                                   | ✅ Done                                             | `src/infrastructure/persistence/sqlite-selection-store.ts`             |
+| AES-256-GCM seed, fresh 12-byte nonce, version/company/quarter bound as AAD                              | ✅ Done                                             | `src/infrastructure/crypto/aes-gcm-seed-cipher.ts`                     |
+| Changed valid request returns original with `inputsMatch: false`                                         | ✅ Done                                             | `src/application/default-selection-service.ts`, `test/service.test.ts` |
+| v1 replay only; new draws v2; unknown versions rejected                                                  | ✅ Done                                             | `src/domain/algorithms/`                                               |
+| Independent fixture: ranks, scores, snapshot hash                                                        | ✅ Tested                                           | `test/selection.test.ts`                                               |
+| Independent fixture: commitment hash                                                                     | ✅ Tested (assertion added during this cross-check) | `test/selection.test.ts`                                               |
+| Distribution: 4,000 seeds from `distribution:<trial>`, within 5 standard deviations                      | ✅ Tested                                           | `test/selection.test.ts`                                               |
+| Previous-quarter pick stays eligible                                                                     | ✅ Tested                                           | `test/selection.test.ts`                                               |
+| Ten independent processes, conflicting inputs, kill/restart, contention, rollback                        | ✅ Tested                                           | `test/recovery.test.ts`                                                |
+| Wrong key, tampered ciphertext, moved seed, no plaintext at rest                                         | ✅ Tested                                           | `test/seed.test.ts`                                                    |
+| Tampered and malformed audit bundles                                                                     | ✅ Tested                                           | `test/audit.test.ts`                                                   |
+| CLI `draw`/`get`/`audit`/`verify`, exit codes 0/1/2                                                      | ✅ Tested                                           | `test/cli.test.ts`                                                     |
+| 20 and 200,000 lifecycle; 50,000 unique at 25%; 10 s pure-selection guard                                | ✅ Tested                                           | `test/scale.test.ts`, `scripts/benchmark.ts`                           |
+| README: commands, input and rounding rules, replay encoding, complexity, measurements, edge case, limits | ✅ Done                                             | `README.md`                                                            |
+| Clean install and full verification on Node 22 and 24                                                    | ✅ Done                                             | `evidence/VERIFICATION.md`                                             |
 
 ### Differences from the plan
 

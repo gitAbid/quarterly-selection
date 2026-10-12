@@ -60,7 +60,11 @@ export class AesGcmSeedCipher implements SeedCipher {
 
 function associatedData(binding: SeedBinding): Buffer {
   return Buffer.from(
-    JSON.stringify([binding.algorithmVersion, binding.companyId, binding.quarter]),
+    JSON.stringify([
+      binding.algorithmVersion,
+      binding.companyId,
+      binding.quarter,
+    ]),
     "utf8",
   );
 }

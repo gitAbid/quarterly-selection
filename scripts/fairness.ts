@@ -8,14 +8,26 @@ const input = {
   companyId: "co-1",
   quarter: "2026-Q4",
   percentage: 25,
-  vehicleIds: ["VAN-1", "VAN-2", "VAN-3", "VAN-4", "VAN-5", "VAN-6", "VAN-7", "VAN-8"],
+  vehicleIds: [
+    "VAN-1",
+    "VAN-2",
+    "VAN-3",
+    "VAN-4",
+    "VAN-5",
+    "VAN-6",
+    "VAN-7",
+    "VAN-8",
+  ],
 };
 const counts = new Map(input.vehicleIds.map((id) => [id, 0]));
 for (let i = 0; i < runs; i++)
-  for (const s of replaySelection(input, randomBytes(32).toString("hex")).selected)
+  for (const s of replaySelection(input, randomBytes(32).toString("hex"))
+    .selected)
     counts.set(s.vehicleId, counts.get(s.vehicleId)! + 1);
 
 const expected = (runs * 2) / 8;
 console.log(`${runs} draws, expected ${expected} picks per vehicle\n`);
 for (const [id, n] of counts)
-  console.log(`${id}  ${String(n).padStart(7)}  ${(((n - expected) / expected) * 100).toFixed(2).padStart(6)}%`);
+  console.log(
+    `${id}  ${String(n).padStart(7)}  ${(((n - expected) / expected) * 100).toFixed(2).padStart(6)}%`,
+  );

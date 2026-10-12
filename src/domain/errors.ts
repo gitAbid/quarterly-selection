@@ -1,8 +1,5 @@
 export type SelectionErrorCode =
-  | "INVALID_INPUT"
-  | "STORAGE"
-  | "KEY"
-  | "NOT_FOUND";
+  "INVALID_INPUT" | "STORAGE" | "KEY" | "NOT_FOUND";
 
 /**
  * Base class for every error this package raises on purpose. Messages are safe

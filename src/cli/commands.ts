@@ -19,7 +19,10 @@ const draw: Command = async (args, env) => {
 
 const get: Command = async (args, env) => {
   const flag = parseFlags(args, IDENTITY_FLAGS);
-  const { companyId, quarter } = parseIdentity(flag("--company"), flag("--quarter"));
+  const { companyId, quarter } = parseIdentity(
+    flag("--company"),
+    flag("--quarter"),
+  );
   return withService(flag("--db"), env, async (service) =>
     succeed((await service.get(companyId, quarter)) ?? null),
   );
@@ -27,7 +30,10 @@ const get: Command = async (args, env) => {
 
 const audit: Command = async (args, env) => {
   const flag = parseFlags(args, IDENTITY_FLAGS);
-  const { companyId, quarter } = parseIdentity(flag("--company"), flag("--quarter"));
+  const { companyId, quarter } = parseIdentity(
+    flag("--company"),
+    flag("--quarter"),
+  );
   return withService(flag("--db"), env, async (service) =>
     succeed(await service.exportAudit(companyId, quarter)),
   );
