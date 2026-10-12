@@ -1,6 +1,6 @@
 # Requirements and acceptance before implementation
 
-Baseline: Audacity Engineering Case Study Part 4 Option A. Build selection only, not the rate limiter or the six-week platform.
+Baseline: Part 4 Option A of the engineering case study. Build selection only, not the rate limiter or the six-week platform.
 
 Required: company active IDs + percentage + quarter; equal treatment; reproducible audit; previous-quarter vehicles eligible; no second different company/quarter draw; 20 and 200,000 vehicles. Deliver code, tests, runnable README, complexity and an unstated edge case.
 
