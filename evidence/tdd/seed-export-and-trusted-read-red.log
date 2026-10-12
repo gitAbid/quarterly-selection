@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/seed.test.ts (2 tests | 2 failed) 21ms
    × exports the retained seed explicitly, including after reopen, without plaintext persistence 14ms

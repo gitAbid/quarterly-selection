@@ -1,5 +1,5 @@
 
- RUN  v2.1.9 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v2.1.9 <project>
 
  ✓ test/selection.test.ts (1 test) 2ms
 

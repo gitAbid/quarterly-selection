@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/audit.test.ts (2 tests | 2 failed) 3ms
    × accepts the independently generated v1 audit fixture 3ms

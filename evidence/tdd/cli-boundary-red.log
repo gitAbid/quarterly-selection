@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/cli.test.ts (2 tests | 2 failed) 222ms
    × draws, reopens, reads, exports and verifies from independent CLI processes 158ms

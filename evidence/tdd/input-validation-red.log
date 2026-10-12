@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/selection.test.ts (35 tests | 16 failed) 1962ms
    × rejects invalid public input 0 without leaking its content 3ms

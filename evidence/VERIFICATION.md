@@ -1,5 +1,7 @@
 # Final verification — 2026-10-12
 
+> **Status note.** The results below were recorded on 12 October 2026 at the first commit, before the code was refactored into layers (`domain`, `application`, `infrastructure`, `bootstrap`, `cli`) and one more test was added (the seed commitment hash). The current code has **131 tests** (the 130 below plus that one). On Node 26.10 all 131 pass, the typecheck is clean and `npm run format:check` passes; Node 22 and 24 were not re-run. Local file paths in these logs were replaced with `<project>` and `node`.
+
 Two independent clean copies without node_modules were installed with `npm ci`. Each used its stated Node executable in PATH and the submitted lockfile. Commands stopped immediately on nonzero exit; all returned zero.
 
 | Check | Node 22.23.3 | Node 24.19.0 |

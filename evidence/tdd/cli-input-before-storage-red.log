@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/cli.test.ts (3 tests | 1 failed) 1065ms
    × rejects invalid draw inputs before creating storage and without exposing the seed key 81ms

@@ -1,5 +1,5 @@
 
- RUN  v5.0.4 /Users/abid/Downloads/audacity-tech-lead/quarterly-selection-v2
+ RUN  v5.0.4 <project>
 
  ❯ test/selection.test.ts (57 tests | 2 failed) 2877ms
    × rejects sparse populations instead of selecting undefined vehicles 3ms
